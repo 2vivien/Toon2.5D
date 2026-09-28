@@ -27,7 +27,7 @@ export function ToonAvatar({character,width=320,height=320}:ToonAvatarProps){
       frame=requestAnimationFrame(tick);
     };
     frame=requestAnimationFrame(tick);
-    return()=>{cancelAnimationFrame(frame);runtime.destroy();};
+    return()=>{cancelAnimationFrame(frame);runtime.destroy();renderer.destroy();};
   },[character,width,height]);
   return <canvas ref={canvasRef} width={width} height={height}/>;
 }
