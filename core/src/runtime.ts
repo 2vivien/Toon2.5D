@@ -67,7 +67,7 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer,opti
       for(const part of character.accessories??[]){const asset=options.assetResolver.resolve(part.assetId);if(!asset)throw new ToonCoreError("INVALID_DEFINITION","Unknown accessory asset ID: "+part.assetId);const texture=part.textureId?options.assetResolver.resolveTexture?.(part.textureId):undefined;
         if(part.textureId&&!texture)throw new ToonCoreError("INVALID_DEFINITION","Unknown accessory texture asset ID: "+part.textureId);
         items.push({id:"accessory-"+index++,slot:"accessory",assetId:part.assetId,assetUri:asset.uri,...(texture?{textureId:part.textureId,textureUri:texture.uri,...(texture.integrity?{integrity:texture.integrity}:{}),...(texture.trustedOrigins?{trustedOrigins:texture.trustedOrigins}:{}),...(texture.limits?{limits:texture.limits}:{})}:{}),...(asset.integrity?{integrity:asset.integrity}:{}),...(asset.trustedOrigins?{trustedOrigins:asset.trustedOrigins}:{}),...(asset.limits?{limits:asset.limits}:{}),...(part.morphs?{morphs:part.morphs}:{})});}
-      await this.applyCustomization({selections:{body:null,face:null,skin:null,hair:null,eyes:null,brows:null,nose:null,mouth:null,top:null,bottom:null,shoes:null,accessory:null},items,colors:character.colors});
+      await this.applyCustomization({selections:{body:null,face:null,skin:null,hair:null,eyes:null,brows:null,nose:null,mouth:null,top:null,bottom:null,shoes:null,accessory:null},items,...(character.colors?{colors:character.colors}:{})});
     },
     update(deltaSeconds){
       if(!Number.isFinite(deltaSeconds)||deltaSeconds<0)throw new ToonCoreError("INVALID_NUMBER","Delta time must be finite and non-negative.");
