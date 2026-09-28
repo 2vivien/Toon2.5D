@@ -32,7 +32,7 @@ Current automated pipeline:
 2. Validate the generated GLB and its 52 facial morph targets.
 3. Run TypeScript build, typecheck and tests.
 
-Future gates:
+Additional production gates:
 
 1. Structural validation.
 2. Canonical visual renders.
@@ -51,7 +51,7 @@ avatar-head.high.glb
 avatar-head.medium.glb
 avatar-head.low.glb
 
-The runtime quality policy for selecting variants is future work.
+The runtime quality controller can select quality tiers; application asset registries may map those tiers to variant manifests.
 
 ## Separation
 
