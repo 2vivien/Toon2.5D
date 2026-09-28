@@ -2,10 +2,7 @@ import {readdir,readFile} from "node:fs/promises";
 import {join} from "node:path";
 
 const root=join(process.cwd(),"docs");
-const forbidden=[
-  /(?:current|currently|model|runtime) V0(?:\.[0-9]+)?/gi,
-  /V0 (?:contract|capability|requirement|implementation)/gi
-];
+const forbidden=[/\bV0(?:\.[0-9]+)?\b/gi];
 const files=[];
 async function walk(dir){
   for(const entry of await readdir(dir,{withFileTypes:true})){
