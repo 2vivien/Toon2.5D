@@ -28,6 +28,10 @@ export interface MorphBinding{
   readonly side?:MorphSide;
   readonly bones?:readonly string[];
   readonly materials?:readonly string[];
+  readonly boneRotationAxis?:"x"|"y"|"z";
+  readonly boneRotationScale?:number;
+  readonly materialChannel?:"opacity"|"metalness"|"roughness"|"emissiveIntensity";
+  readonly materialScale?:number;
 }
 export interface ExpressionProfile{readonly id:string;readonly version:1;readonly morphBindings:readonly MorphBinding[]}
 export interface AssetRig{readonly headBone:string;readonly leftEyeBone:string;readonly rightEyeBone:string}
