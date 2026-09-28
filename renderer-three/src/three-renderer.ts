@@ -145,7 +145,8 @@ export class ThreeRenderer implements Renderer{
       const slot=avatar.slots.get(item.slot);
       if(!slot)continue;
       for(const child of slot.children.slice()){slot.remove(child);disposeObject(child)}
-      if(item.morphs)avatar.customizationMorphs={...avatar.customizationMorphs,...item.morphs};\n      if(item.assetUri){
+      if(item.morphs)avatar.customizationMorphs={...avatar.customizationMorphs,...item.morphs};
+      if(item.assetUri){
         const gltf=await loadGLTF(item.assetUri,{renderer:this.renderer});
         if(this.scenes.get(scene.id)!==avatar){disposeObject(gltf.scene);throw new Error("Renderer scene was disposed during customization loading.")}
         slot.add(gltf.scene);
