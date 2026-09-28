@@ -9,7 +9,7 @@ export function collectMorphBindings(root:THREE.Object3D,mappings:readonly Morph
   const map:MorphBindingMap=new Map();
   root.traverse(object=>{
     if(!(object instanceof THREE.Mesh)||!object.morphTargetDictionary)return;
-    const requested=mappings.length>0?mappings:FACE_PARAMETERS.map(parameter=>({parameter,targets:[parameter],scale:1}));
+    const requested:readonly MorphBinding[]=mappings.length>0?mappings:FACE_PARAMETERS.map(parameter=>({parameter,targets:[parameter],scale:1}));
     for(const mapping of requested){
       for(const target of mapping.targets){
         const index=object.morphTargetDictionary[target];
