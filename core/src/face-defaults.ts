@@ -1,4 +1,4 @@
-import type {FaceParameter,FaceWeights}from"./types.js";
+import type {FaceParameter,FaceWeights,MutableFaceWeights}from"./types.js";
 
 export const FACE_PARAMETERS:readonly FaceParameter[]=[
   "mouthSmile","mouthOpen","mouthFrown","mouthPucker","mouthStretch","jawOpen",
@@ -7,7 +7,7 @@ export const FACE_PARAMETERS:readonly FaceParameter[]=[
   "cheekRaiseRight","cheekPuff","noseWrinkle","eyeLookHorizontal","eyeLookVertical"
 ];
 
-export function createNeutralFace():FaceWeights{
+export function createNeutralFace():MutableFaceWeights{
   return {
     mouthSmile:0,mouthOpen:0,mouthFrown:0,mouthPucker:0,mouthStretch:0,jawOpen:0,
     eyeBlinkLeft:0,eyeBlinkRight:0,eyeSquintLeft:0,eyeSquintRight:0,
