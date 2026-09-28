@@ -1,55 +1,38 @@
 # Project Structure
 
-Target monorepo:
+The V0.1 pnpm workspace uses explicit root-level package directories.
 
 ```
 Toon2.5D/
-├── packages/
-│   ├── core/
-│   ├── renderer-three/
-│   ├── assets/
-│   ├── animation/
-│   └── react/
+├── core/
+├── renderer-three/
+├── assets/
+├── animation/
+├── react/
 ├── examples/
 │   ├── vanilla/
-│   ├── react/
-│   └── nextjs/
-├── assets/
-│   ├── manifests/
-│   └── source/
-├── docs/
+│   └── react/
 ├── tests/
-├── benchmarks/
+├── docs/
 ├── package.json
 ├── pnpm-workspace.yaml
-├── tsconfig.base.json
-└── README.md
+└── tsconfig.base.json
 ```
 
-## Core package
+## Package ownership
 
-Owns types, runtime state, scene contracts, controllers and lifecycle.
+Core owns domain types, runtime state, scene contracts, expression control and lifecycle.
 
-## Renderer package
+Renderer-three owns Three.js, GPU resources, GLTF loading and rendering.
 
-Owns Three.js implementation.
+Assets owns manifests, validation, asset identity and registry contracts.
 
-## Assets package
+Animation owns timelines, interpolation, playback and expression-source adaptation.
 
-Owns manifest schema, resolver, loader and cache.
+React owns framework lifecycle integration only.
 
-## Animation package
+## Boundary rule
 
-Owns reusable animation primitives.
+Examples consume public package APIs. They must not import renderer internals or mutate engine state directly.
 
-## React package
-
-Owns React lifecycle integration.
-
-## Examples
-
-Examples are real consumers of the public API. They must not import internal source files.
-
-## Tests
-
-Tests must exercise public contracts where possible. Internal implementation tests are allowed for difficult rendering behavior but should not define the public API.
+Tests prefer public contracts and deterministic pure functions.
