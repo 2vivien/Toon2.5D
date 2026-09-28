@@ -6,7 +6,9 @@ import {MeshoptDecoder}from"three/examples/jsm/libs/meshopt_decoder.module.js";
 import type {AssetLoadLimits}from"@toon2.5d/core";
 import {createAssetCache}from"@toon2.5d/assets";
 
-const glbCache=createAssetCache<ArrayBuffer>(async()=>new ArrayBuffer(0),()=>{},128*1024*1024);\n\nexport interface GLTFLoadOptions{
+const glbCache=createAssetCache<ArrayBuffer>(async()=>new ArrayBuffer(0),()=>{},128*1024*1024);
+
+export interface GLTFLoadOptions{
   readonly dracoPath?:string;
   readonly ktx2TranscoderPath?:string;
   readonly renderer?:THREE.WebGLRenderer;
