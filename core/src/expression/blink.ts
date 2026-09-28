@@ -4,10 +4,15 @@ import type {ExpressionContext,ExpressionContribution,ExpressionSource}from"./ty
 export interface BlinkConfig{readonly closeSeconds:number;readonly holdSeconds:number;readonly openSeconds:number;readonly intervalSeconds:number}
 interface MutableContribution{source:"blink";parameter:"eyeBlinkLeft"|"eyeBlinkRight";value:number;weight:1;priority:50;mode:"override"}
 
-const DEFAULTS: BlinkConfig={closeSeconds:.07,holdSeconds:.04,openSeconds:.1,intervalSeconds:4};
+const DEFAULTS:BlinkConfig={closeSeconds:.07,holdSeconds:.04,openSeconds:.1,intervalSeconds:4};
 
 export function blinkSource(config:Partial<BlinkConfig>={},phaseOffset=0):ExpressionSource{
-  const settings={...DEFAULTS,...config};
+  const settings={
+    closeSeconds:Math.max(.001,config.closeSeconds??DEFAULTS.closeSeconds),
+    holdSeconds:Math.max(0,config.holdSeconds??DEFAULTS.holdSeconds),
+    openSeconds:Math.max(.001,config.openSeconds??DEFAULTS.openSeconds),
+    intervalSeconds:Math.max(.05,config.intervalSeconds??DEFAULTS.intervalSeconds)
+  };
   const contributions:MutableContribution[]=[
     {source:"blink",parameter:"eyeBlinkLeft",value:0,weight:1,priority:50,mode:"override"},
     {source:"blink",parameter:"eyeBlinkRight",value:0,weight:1,priority:50,mode:"override"}
