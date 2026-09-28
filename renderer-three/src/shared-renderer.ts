@@ -1,4 +1,4 @@
-import type {RendererScene,QualityTier}from"@toon2.5d/core";
+import type {RendererScene}from"@toon2.5d/core";
 import {ThreeRenderer,type ThreeRendererOptions}from"./three-renderer.js";
 
 interface Entry{readonly scene:RendererScene;visible:boolean;priority:number;lastFrame:number}
