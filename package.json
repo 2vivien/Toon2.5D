@@ -8,11 +8,17 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "vitest run",
     "bench": "vitest bench benchmarks",
-    "lint": "pnpm -r --if-present lint"
+    "lint": "pnpm -r --if-present lint",
+    "test:browser": "playwright test"
   },
   "devDependencies": {
     "typescript": "^7.0.2",
     "vitest": "^5.0.2",
-    "three": "0.186.1"
+    "three": "0.186.1",
+    "@playwright/test": "^1.55.0",
+    "vite": "^7.1.5",
+    "@vitejs/plugin-react": "^5.0.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   }
 }
