@@ -93,7 +93,7 @@ def build():
     output=Path(__file__).resolve().parents[1]/"generated"/"head.reference.glb";output.parent.mkdir(parents=True,exist_ok=True)
     props=bpy.ops.export_scene.gltf.get_rna_type().properties;options=dict(filepath=str(output),export_format="GLB",export_yup=True,export_materials="EXPORT",export_morph=True,export_morph_normal=False,export_morph_tangent=False,export_animations=False,export_cameras=False,export_lights=False,export_apply=False,export_try_sparse_sk=True)
     if "export_meshopt_compression_enable" in props:options["export_meshopt_compression_enable"]=True
-    elif "export_draco_mesh_compression_enable" in props:options["export_draco_mesh_compression_enable"]=True
+    elif "export_draco_mesh_compression_enable" in props and Path("/usr/bin/4.0/python/lib/python3.12/site-packages/libextern_draco.so").exists():options["export_draco_mesh_compression_enable"]=True
     bpy.ops.export_scene.gltf(**options);print(f"Toon2.5D reference head: {output}")
 
 build()
