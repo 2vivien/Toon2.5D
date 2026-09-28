@@ -29,7 +29,7 @@ jobs:
       - name: Install Blender
         run: |
           sudo apt-get update
-          sudo apt-get install -y blender
+          sudo apt-get install -y blender python3-numpy
       - name: Generate reference GLB
         run: blender --background --python assets/tools/build_reference_head.py
       - name: Validate reference GLB
