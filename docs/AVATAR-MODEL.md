@@ -4,10 +4,26 @@
 
 Represent an avatar as a stable, serializable definition rather than a framework component.
 
-## Canonical shape
+## Current V0 shape
+
+The current runtime definition is intentionally minimal:
 
 ```ts
 type AvatarDefinition = {
+  schemaVersion: 1;
+  assetId: string;
+  expressionProfileId: string;
+};
+```
+
+It identifies the logical asset and semantic facial profile used by the runtime.
+
+## Target compositional model
+
+A future character definition may expand into:
+
+```ts
+type CharacterDefinition = {
   version: 1;
   model: string;
   face: FaceConfig;
@@ -23,18 +39,20 @@ type AvatarDefinition = {
 };
 ```
 
-The exact TypeScript contracts belong in `packages/core` and this document defines their semantics.
+This richer model is an architectural target, not the current V0 runtime contract.
 
 ## IDs
 
 Asset IDs are stable logical IDs, not URLs.
 
 Bad:
+
 ```ts
 hair: "https://cdn.example.com/file123.glb"
 ```
 
 Good:
+
 ```ts
 hair: "hair.curly.003"
 ```
@@ -43,7 +61,7 @@ URL resolution belongs to the asset registry.
 
 ## Character composition
 
-A character definition is resolved into a runtime graph:
+The target composition pipeline is:
 
 ```
 Definition
@@ -54,9 +72,11 @@ Definition
   -> Morph/bone bindings
 ```
 
+V0 currently resolves the asset reference and expression profile rather than exposing the full composition pipeline.
+
 ## Customization
 
-Customization must be data-driven. Adding a hairstyle should not require changing the renderer.
+Customization is designed to be data-driven. Adding a hairstyle or accessory must not require renderer changes. The complete runtime customization facade is planned for a later phase.
 
 ## Determinism
 
@@ -74,13 +94,4 @@ Never silently reinterpret old definitions.
 
 ## Future full-body extension
 
-The model must reserve room for:
-
-- torso
-- clothing
-- hands
-- legs
-- footwear
-- body proportions
-
-but V0 only implements the head/avatar target.
+The model reserves room for torso, clothing, hands, legs, footwear and body proportions, but V0 remains head-focused.
