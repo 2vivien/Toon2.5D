@@ -31,6 +31,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: pnpm build
       - run: pnpm typecheck
+      - run: pnpm -r --if-present pack --dry-run
       - run: pnpm test
       - run: pnpm docs:check
       - name: Changesets release
