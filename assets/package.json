@@ -19,6 +19,16 @@
     "test": "vitest run"
   },
   "publishConfig": {
-    "access": "public"
-  }
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/2vivien/Toon2.5D.git",
+    "directory": "assets"
+  },
+  "bugs": {
+    "url": "https://github.com/2vivien/Toon2.5D/issues"
+  },
+  "homepage": "https://github.com/2vivien/Toon2.5D#readme"
 }

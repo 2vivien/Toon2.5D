@@ -6,6 +6,7 @@ import type {FaceWeights,Renderer,RendererScene,Transform,CharacterCustomization
 
 interface AvatarScene extends RendererScene{
   readonly root:THREE.Group;
+  readonly scene:THREE.Scene;
   readonly head:THREE.Mesh;
   readonly leftEye:THREE.Mesh;
   readonly rightEye:THREE.Mesh;
@@ -29,6 +30,16 @@ export interface ThreeRendererOptions{
   readonly pixelRatio?:number;
 }
 
+
+async function loadTextureSecure(uri:string,options:{readonly integrity?:string;readonly trustedOrigins?:readonly string[];readonly maxBytes?:number;readonly maxTexturePixels?:number}={}):Promise<THREE.Texture>{
+ const parsed=new URL(uri);const dev=(globalThis as {process?:{env?:Record<string,string|undefined>}}).process?.env?.NODE_ENV==="development";const localhost=parsed.hostname==="localhost"||parsed.hostname==="127.0.0.1"||parsed.hostname==="::1";if(parsed.protocol!=="https:"&&!(dev&&parsed.protocol==="http:"&&localhost))throw new Error("Remote textures must use HTTPS.");if(options.trustedOrigins?.length&&!options.trustedOrigins.includes(parsed.origin))throw new Error("Texture origin is not trusted.");
+ const response=await fetch(uri,{credentials:"omit"});if(!response.ok)throw new Error(`Texture request failed: ${response.status} ${response.statusText}`);const declared=response.headers.get("content-length");if(options.maxBytes!==undefined&&declared&&Number(declared)>options.maxBytes)throw new Error("Texture exceeds configured byte-size limit.");const data=await response.arrayBuffer();if(options.maxBytes!==undefined&&data.byteLength>options.maxBytes)throw new Error("Texture exceeds configured byte-size limit.");
+ if(options.integrity){if(!options.integrity.startsWith("sha256-"))throw new Error("Only sha256 texture integrity is supported.");const digest=await crypto.subtle.digest("SHA-256",data);const encoded=btoa(String.fromCharCode(...new Uint8Array(digest)));if("sha256-"+encoded!==options.integrity)throw new Error("Texture integrity verification failed.");}
+ const blob=new Blob([data]);const objectUrl=URL.createObjectURL(blob);try{const texture=await new THREE.TextureLoader().loadAsync(objectUrl);const image=texture.image as {width?:number;height?:number}|undefined;if(options.maxTexturePixels!==undefined&&image?.width&&image.height&&image.width*image.height>options.maxTexturePixels){texture.dispose();throw new Error("Texture pixel limit exceeded.");}return texture}finally{URL.revokeObjectURL(objectUrl)}
+}
+function applyTextureToRoot(root:THREE.Object3D,texture:THREE.Texture):void{root.traverse(object=>{if(!(object instanceof THREE.Mesh))return;const materials=Array.isArray(object.material)?object.material:[object.material];for(const material of materials){if("map"in material){material.map=texture;material.needsUpdate=true}}})}
+function applyColorToRoot(root:THREE.Object3D,color:string):void{const parsed=new THREE.Color(color);root.traverse(object=>{if(!(object instanceof THREE.Mesh))return;const materials=Array.isArray(object.material)?object.material:[object.material];for(const material of materials){if("color"in material){(material as THREE.MeshStandardMaterial).color.copy(parsed);material.needsUpdate=true}}})}
+
 function disposeObject(root:THREE.Object3D):void{
   root.traverse(object=>{
     if(!(object instanceof THREE.Mesh))return;
@@ -40,7 +51,6 @@ function disposeObject(root:THREE.Object3D):void{
 
 export class ThreeRenderer implements Renderer{
   private readonly renderer:THREE.WebGLRenderer;
-  private readonly scene=new THREE.Scene();
   private readonly scenes=new Map<string,AvatarScene>();
   private contextLost=false;
   private readonly onContextLost=(event:Event)=>{event.preventDefault();this.contextLost=true;};
@@ -48,11 +58,6 @@ export class ThreeRenderer implements Renderer{
 
   constructor(options:ThreeRendererOptions){
     this.renderer=new THREE.WebGLRenderer({canvas:options.canvas,antialias:true,alpha:true});
-    this.scene.background=options.background===undefined?null:new THREE.Color(options.background);
-    const fill=new THREE.HemisphereLight(0xffffff,0x555555,1.4);
-    const key=new THREE.DirectionalLight(0xffffff,1.8);
-    key.position.set(2,3,4);
-    this.scene.add(fill,key);
     this.renderer.setPixelRatio(Math.min(options.pixelRatio??1.5,2));
     options.canvas.addEventListener("webglcontextlost",this.onContextLost,false);
     options.canvas.addEventListener("webglcontextrestored",this.onContextRestored,false);
@@ -60,11 +65,15 @@ export class ThreeRenderer implements Renderer{
 
   createScene():RendererScene{
     const fallback=createFallbackAvatar();const {root,head,leftEye,rightEye,mouth}=fallback;
+    const scene=new THREE.Scene();
+    scene.background=null;
+    const fill=new THREE.HemisphereLight(0xffffff,0x555555,1.4);
+    const key=new THREE.DirectionalLight(0xffffff,1.8); key.position.set(2,3,4);
+    scene.add(fill,key,root);
     const camera=new THREE.OrthographicCamera(-1,1,1,-1,.01,100);camera.position.z=5;
     const perspectiveCamera=new THREE.PerspectiveCamera(35,1,.01,100);perspectiveCamera.position.z=5;
-    this.scene.add(root);
     const slots=new Map<string,THREE.Group>();for(const slot of ["body","face","skin","hair","eyes","brows","nose","mouth","top","bottom","shoes","accessory"])slots.set(slot,new THREE.Group());slots.forEach(group=>root.add(group));
-    const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots,customizationMorphs:{},camera,perspectiveCamera,animations:[]};
+    const avatar:AvatarScene={id:crypto.randomUUID(),scene,root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots,customizationMorphs:{},camera,perspectiveCamera,animations:[]};
     this.scenes.set(avatar.id,avatar);return avatar;
   }
 
@@ -77,10 +86,11 @@ export class ThreeRenderer implements Renderer{
   }
 
   async loadAsset(scene:RendererScene,asset:RuntimeAsset):Promise<void>{
-    await this.loadModel(scene,asset.uri,asset.morphBindings,asset);
+    await this.loadModelFromAsset(scene,asset);
   }
 
-  async loadModel(scene:RendererScene,url:string,mappings:readonly RendererMorphBinding[]=[],asset?:RuntimeAsset):Promise<void>{
+  private async loadModelFromAsset(scene:RendererScene,asset:RuntimeAsset):Promise<void>{
+    const url=asset.uri;const mappings=asset.morphBindings;
     const avatar=this.requireScene(scene);
     const gltf=await loadGLTF(url,{renderer:this.renderer,...(asset?.limits?.maxBytes!==undefined?{maxBytes:asset.limits.maxBytes}:{}),...(asset?.limits?.maxTexturePixels!==undefined?{maxTexturePixels:asset.limits.maxTexturePixels}:{}),...(asset?.limits?.maxVertices!==undefined?{maxVertices:asset.limits.maxVertices}:{}),...(asset?.limits?.maxAnimations!==undefined?{maxAnimations:asset.limits.maxAnimations}:{}),...(asset?.trustedOrigins?{trustedOrigins:asset.trustedOrigins}:{}),...(asset?.integrity?{integrity:asset.integrity}:{})});
     if(this.scenes.get(scene.id)!==avatar){
@@ -143,8 +153,11 @@ export class ThreeRenderer implements Renderer{
   }
 
   render(scene:RendererScene):void{if(this.contextLost)return;const avatar=this.requireScene(scene);this.renderScene(avatar)}
-  protected renderScene(avatar:AvatarScene):void{const camera=avatar.root.userData.cameraMode==="perspective"?avatar.perspectiveCamera:avatar.camera;this.renderer.render(this.scene,camera)}
+  protected renderScene(avatar:AvatarScene):void{const camera=avatar.root.userData.cameraMode==="perspective"?avatar.perspectiveCamera:avatar.camera;this.renderer.render(avatar.scene,camera)}
   protected renderAll():void{for(const id of this.scenes.keys()){const avatar=this.scenes.get(id);if(avatar)this.renderScene(avatar)}}
+
+  setCharacterColors(scene:RendererScene,colors:import("@toon2.5d/core").CharacterColors):void{const avatar=this.requireScene(scene);for(const [slotName,color] of Object.entries(colors)){if(!color)continue;const slot=avatar.slots.get(slotName);if(slot)applyColorToRoot(slot,color)}}
+  setBoneTransform(scene:RendererScene,boneName:string,transform:Transform):void{const avatar=this.requireScene(scene);const bone=avatar.loadedRoot?.getObjectByName(boneName);if(!(bone instanceof THREE.Bone))throw new Error("Bone not found: "+boneName);bone.position.set(transform.position.x,transform.position.y,transform.position.z);bone.quaternion.set(transform.rotation.x,transform.rotation.y,transform.rotation.z,transform.rotation.w).normalize();bone.scale.set(transform.scale.x,transform.scale.y,transform.scale.z)}
 
   setQuality(tier:QualityTier):void{const ratios:Record<QualityTier,number>={low:.75,medium:1,high:1.5,ultra:2};this.renderer.setPixelRatio(ratios[tier]);}
 
@@ -155,27 +168,19 @@ export class ThreeRenderer implements Renderer{
   async applyCustomization(scene:RendererScene,customization:CharacterCustomization):Promise<void>{
     const avatar=this.requireScene(scene);
     for(const item of customization.items){
-      const slot=avatar.slots.get(item.slot);
-      if(!slot)continue;
-      for(const child of slot.children.slice()){slot.remove(child);disposeObject(child)}
+      const slot=avatar.slots.get(item.slot); if(!slot)continue;
+      if(item.slot==="accessory"){for(const child of slot.children.slice())if(child.userData.customizationItemId===item.id){slot.remove(child);disposeObject(child)}}
+      else for(const child of slot.children.slice()){slot.remove(child);disposeObject(child)}
       if(item.morphs)avatar.customizationMorphs={...avatar.customizationMorphs,...item.morphs};
       if(item.assetUri){
         const gltf=await loadGLTF(item.assetUri,{renderer:this.renderer});
         if(this.scenes.get(scene.id)!==avatar){disposeObject(gltf.scene);throw new Error("Renderer scene was disposed during customization loading.")}
+        gltf.scene.userData.customizationItemId=item.id;
+        if(item.textureUri){const texture=await loadTextureSecure(item.textureUri,{...(item.textureIntegrity?{integrity:item.textureIntegrity}:{}),...(item.textureTrustedOrigins?{trustedOrigins:item.textureTrustedOrigins}:{}),...(item.textureLimits?.maxBytes!==undefined?{maxBytes:item.textureLimits.maxBytes}:{}),...(item.textureLimits?.maxTexturePixels!==undefined?{maxTexturePixels:item.textureLimits.maxTexturePixels}:{})});applyTextureToRoot(gltf.scene,texture);}
         slot.add(gltf.scene);
       }
-      if(item.textureUri){
-        const texture=await new THREE.TextureLoader().loadAsync(item.textureUri);
-        if(this.scenes.get(scene.id)!==avatar){texture.dispose();throw new Error("Renderer scene was disposed during texture loading.")}
-        const previous=slot.userData.texture as THREE.Texture|undefined;
-        previous?.dispose();slot.userData.texture=texture;
-        slot.traverse(object=>{
-          if(!(object instanceof THREE.Mesh))return;
-          const materials=Array.isArray(object.material)?object.material:[object.material];
-          for(const material of materials)if("map"in material){material.map=texture;material.needsUpdate=true}
-        });
-      }
     }
+    if(customization.colors){for(const [slotName,color] of Object.entries(customization.colors)){if(!color)continue;const slot=avatar.slots.get(slotName);if(slot)applyColorToRoot(slot,color)}}
   }
 
   resize(width:number,height:number):void{
@@ -186,7 +191,7 @@ export class ThreeRenderer implements Renderer{
   dispose(scene:RendererScene):void{
     const avatar=this.requireScene(scene);
     disposeObject(avatar.root);
-    this.scene.remove(avatar.root);this.scenes.delete(avatar.id);
+    avatar.scene.remove(avatar.root);this.scenes.delete(avatar.id);
   }
 
   destroy():void{

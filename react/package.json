@@ -26,6 +26,16 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "publishConfig": {
-    "access": "public"
-  }
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/2vivien/Toon2.5D.git",
+    "directory": "react"
+  },
+  "bugs": {
+    "url": "https://github.com/2vivien/Toon2.5D/issues"
+  },
+  "homepage": "https://github.com/2vivien/Toon2.5D#readme"
 }

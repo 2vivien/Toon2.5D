@@ -7,6 +7,7 @@ export interface Clip{
   readonly id:string;
   readonly duration:number;
   readonly tracks:readonly Track[];
+  readonly markers?:readonly import("./events.js").AnimationMarker[];
 }
 
 export interface AnimationState{

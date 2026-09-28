@@ -5,10 +5,10 @@ export interface AssetManifest{
   readonly id:string;
   readonly version:string;
   readonly uri:string;
-  readonly mime:"model/gltf-binary";
+  readonly mime:"model/gltf-binary"|"image/png"|"image/jpeg"|"image/webp";
   readonly integrity?:string;
-  readonly expressionProfile:ExpressionProfile;
-  readonly anchors:readonly string[];
+  readonly expressionProfile?:ExpressionProfile;
+  readonly anchors?:readonly string[];
   readonly rig?:AssetRig;
   readonly limits?:AssetLoadLimits;
   readonly trustedOrigins?:readonly string[];

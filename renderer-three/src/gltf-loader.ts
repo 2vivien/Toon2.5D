@@ -3,10 +3,20 @@ import {GLTFLoader,type GLTF}from"three/examples/jsm/loaders/GLTFLoader.js";
 import {DRACOLoader}from"three/examples/jsm/loaders/DRACOLoader.js";
 import {KTX2Loader}from"three/examples/jsm/loaders/KTX2Loader.js";
 import {MeshoptDecoder}from"three/examples/jsm/libs/meshopt_decoder.module.js";
-import type {AssetLoadLimits}from"@toon2.5d/core";
+import type {AssetLoadLimits,RuntimeAsset}from"@toon2.5d/core";
 import {createAssetCache}from"@toon2.5d/assets";
 
-const glbCache=createAssetCache<ArrayBuffer>(async()=>new ArrayBuffer(0),()=>{},128*1024*1024);
+const glbCache=createAssetCache<ArrayBuffer>(async(asset)=>{
+  const parsed=new URL(asset.uri);
+  const dev=(globalThis as {process?:{env?:Record<string,string|undefined>}}).process?.env?.NODE_ENV==="development";
+  const localhost=parsed.hostname==="localhost"||parsed.hostname==="127.0.0.1"||parsed.hostname==="::1";
+  if(parsed.protocol!=="https:"&&!(dev&&parsed.protocol==="http:"&&localhost))throw new Error("Remote assets must use HTTPS.");
+  if(asset.trustedOrigins?.length&&!asset.trustedOrigins.includes(parsed.origin))throw new Error("Asset origin is not trusted.");
+  const response=await fetch(asset.uri,{credentials:"omit"});if(!response.ok)throw new Error(`Asset request failed: ${response.status} ${response.statusText}`);
+  const maxBytes=asset.limits?.maxBytes;const declared=response.headers.get("content-length");if(maxBytes!==undefined&&declared&&Number(declared)>maxBytes)throw new Error("Asset exceeds configured byte-size limit.");
+  const data=await response.arrayBuffer();if(maxBytes!==undefined&&data.byteLength>maxBytes)throw new Error("Asset exceeds configured byte-size limit.");
+  await verifyIntegrity(data,asset.integrity);return data;
+},()=>{},128*1024*1024);
 
 export interface GLTFLoadOptions{
   readonly dracoPath?:string;
@@ -23,7 +33,10 @@ export interface GLTFLoadOptions{
 
 function validateOrigin(url:string,trustedOrigins?:readonly string[]):void{
   const protocol=new URL(url).protocol;
-  if(protocol!=="https:"&&protocol!=="http:")throw new Error("Unsupported asset URL scheme.");
+  const parsed=new URL(url);
+  const dev=(globalThis as {process?:{env?:Record<string,string|undefined>}}).process?.env?.NODE_ENV==="development";
+  const localhost=parsed.hostname==="localhost"||parsed.hostname==="127.0.0.1"||parsed.hostname==="::1";
+  if(protocol!=="https:"&&!(dev&&protocol==="http:"&&localhost))throw new Error("Remote assets must use HTTPS.");
   if(trustedOrigins&&trustedOrigins.length>0){
     const origin=new URL(url).origin;
     if(!trustedOrigins.includes(origin))throw new Error("Asset origin is not trusted.");
@@ -65,23 +78,12 @@ function validateComplexity(gltf:GLTF,limits:AssetLoadLimits):void{
 }
 export async function loadGLTF(url:string,options:GLTFLoadOptions={}):Promise<GLTF>{
   validateOrigin(url,options.trustedOrigins);
-  const fetcher=options.fetchImpl??fetch;
-  const cached=options.fetchImpl?undefined:glbCache.get(url);
-  let data=cached;
-  if(!data){
-    const response=await fetcher(url,{credentials:"omit"});
-    if(!response.ok)throw new Error(`Asset request failed: ${response.status} ${response.statusText}`);
-    const declared=response.headers.get("content-length");
-    const maxBytes=options.maxBytes;
-    if(maxBytes!==undefined&&declared&&Number(declared)>maxBytes)throw new Error("Asset exceeds configured byte-size limit.");
-    data=await response.arrayBuffer();
-    if(maxBytes!==undefined&&data.byteLength>maxBytes)throw new Error("Asset exceeds configured byte-size limit.");
-    if(!options.fetchImpl)glbCache.set(url,data,data.byteLength);
-  }
+  const cacheAsset:RuntimeAsset={id:`url:${url}|integrity:${options.integrity??""}|max:${options.maxBytes??""}`,uri:url,morphBindings:[],...(options.integrity?{integrity:options.integrity}:{}),...(options.trustedOrigins?{trustedOrigins:options.trustedOrigins}:{}),...(options.maxBytes!==undefined||options.maxTexturePixels!==undefined||options.maxVertices!==undefined||options.maxAnimations!==undefined?{limits:{...(options.maxBytes!==undefined?{maxBytes:options.maxBytes}:{}),...(options.maxTexturePixels!==undefined?{maxTexturePixels:options.maxTexturePixels}:{}),...(options.maxVertices!==undefined?{maxVertices:options.maxVertices}:{}),...(options.maxAnimations!==undefined?{maxAnimations:options.maxAnimations}:{})}}:{})};
+  let data:ArrayBuffer;
+  if(options.fetchImpl){const response=await options.fetchImpl(url,{credentials:"omit"});if(!response.ok)throw new Error(`Asset request failed: ${response.status} ${response.statusText}`);data=await response.arrayBuffer();await verifyIntegrity(data,options.integrity);}
+  else {await glbCache.preload([cacheAsset]);data=glbCache.acquire(cacheAsset.id!)!;}
   if(options.maxBytes!==undefined&&data.byteLength>options.maxBytes)throw new Error("Asset exceeds configured byte-size limit.");
   validateGLB(data);
-  await verifyIntegrity(data,options.integrity);
-  await verifyIntegrity(data,options.integrity);
   const loader=new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
   const draco=options.dracoPath?new DRACOLoader():null;
@@ -92,5 +94,5 @@ export async function loadGLTF(url:string,options:GLTFLoadOptions={}):Promise<GL
     const gltf=await loader.parseAsync(data,url);
     validateComplexity(gltf,toLimits(options));
     return gltf;
-  }finally{draco?.dispose();ktx2?.dispose();}
+  }finally{draco?.dispose();ktx2?.dispose();if(!options.fetchImpl)glbCache.release(cacheAsset.id!);}
 }

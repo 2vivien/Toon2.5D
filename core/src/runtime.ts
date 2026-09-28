@@ -9,7 +9,7 @@ import type {CharacterDefinition,CharacterPart}from"./character.js";
 import type {CharacterCustomization}from"./customization.js";
 import type {ExpressionController}from"./expression/controller.js";
 
-export interface AssetResolver{resolve(id:string):RuntimeAsset|undefined}
+export interface AssetResolver{resolve(id:string):RuntimeAsset|undefined;resolveTexture?(id:string):import("./types.js").RuntimeTextureAsset|undefined}
 export interface AvatarRuntime{
   readonly status:RuntimeStatus;
   readonly face:FaceWeights;
@@ -29,6 +29,8 @@ export interface AvatarRuntime{
   setLookAtPose(pose:import("./look-at.js").LookAtPose):void;
   applyCustomization(customization:import("./customization.js").CharacterCustomization):Promise<void>;
   setQuality(tier:import("./quality.js").QualityTier):void;
+  setCharacterColors(colors:import("./character.js").CharacterColors):void;
+  setBoneTransform(boneName:string,transform:import("./types.js").Transform):void;
   destroy():void;
 }
 
@@ -59,9 +61,13 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer,opti
       if(!options.assetResolver)throw new ToonCoreError("INVALID_LIFECYCLE","An asset resolver is required for CharacterDefinition loading.");
       const partMap:[import("./customization.js").CustomizationSlot,CharacterPart|undefined][]=[["body",character.body],["face",character.face],["skin",character.skin],["hair",character.hair],["eyes",character.eyes],["brows",character.brows],["nose",character.nose],["mouth",character.mouth],["top",character.top],["bottom",character.bottom],["shoes",character.shoes]];
       const items:CharacterCustomization["items"][number][]=[];let index=0;
-      for(const [slot,part] of partMap){if(!part)continue;const asset=options.assetResolver.resolve(part.assetId);if(!asset)throw new ToonCoreError("INVALID_DEFINITION","Unknown character asset ID: "+part.assetId);items.push({id:slot+"-"+index++,slot,assetId:part.assetId,assetUri:asset.uri,...(asset.integrity?{integrity:asset.integrity}:{}),...(asset.trustedOrigins?{trustedOrigins:asset.trustedOrigins}:{}),...(asset.limits?{limits:asset.limits}:{}),...(part.morphs?{morphs:part.morphs}:{})});}
-      for(const part of character.accessories??[]){const asset=options.assetResolver.resolve(part.assetId);if(!asset)throw new ToonCoreError("INVALID_DEFINITION","Unknown accessory asset ID: "+part.assetId);items.push({id:"accessory-"+index++,slot:"accessory",assetId:part.assetId,assetUri:asset.uri,...(asset.integrity?{integrity:asset.integrity}:{}),...(asset.trustedOrigins?{trustedOrigins:asset.trustedOrigins}:{}),...(asset.limits?{limits:asset.limits}:{}),...(part.morphs?{morphs:part.morphs}:{})});}
-      await this.applyCustomization({selections:{body:null,face:null,skin:null,hair:null,eyes:null,brows:null,nose:null,mouth:null,top:null,bottom:null,shoes:null,accessory:null},items});
+      for(const [slot,part] of partMap){if(!part)continue;const asset=options.assetResolver.resolve(part.assetId);if(!asset)throw new ToonCoreError("INVALID_DEFINITION","Unknown character asset ID: "+part.assetId);const texture=part.textureId?options.assetResolver.resolveTexture?.(part.textureId):undefined;
+      if(part.textureId&&!texture)throw new ToonCoreError("INVALID_DEFINITION","Unknown character texture asset ID: "+part.textureId);
+      items.push({id:slot+"-"+index++,slot,assetId:part.assetId,assetUri:asset.uri,...(texture?{textureId:part.textureId,textureUri:texture.uri,...(texture.integrity?{textureIntegrity:texture.integrity}:{}),...(texture.trustedOrigins?{textureTrustedOrigins:texture.trustedOrigins}:{}),...(texture.limits?{textureLimits:texture.limits}:{})}:{}),...(asset.integrity?{integrity:asset.integrity}:{}),...(asset.trustedOrigins?{trustedOrigins:asset.trustedOrigins}:{}),...(asset.limits?{limits:asset.limits}:{}),...(part.morphs?{morphs:part.morphs}:{})});}
+      for(const part of character.accessories??[]){const asset=options.assetResolver.resolve(part.assetId);if(!asset)throw new ToonCoreError("INVALID_DEFINITION","Unknown accessory asset ID: "+part.assetId);const texture=part.textureId?options.assetResolver.resolveTexture?.(part.textureId):undefined;
+        if(part.textureId&&!texture)throw new ToonCoreError("INVALID_DEFINITION","Unknown accessory texture asset ID: "+part.textureId);
+        items.push({id:"accessory-"+index++,slot:"accessory",assetId:part.assetId,assetUri:asset.uri,...(texture?{textureId:part.textureId,textureUri:texture.uri,...(texture.integrity?{textureIntegrity:texture.integrity}:{}),...(texture.trustedOrigins?{textureTrustedOrigins:texture.trustedOrigins}:{}),...(texture.limits?{textureLimits:texture.limits}:{})}:{}),...(asset.integrity?{integrity:asset.integrity}:{}),...(asset.trustedOrigins?{trustedOrigins:asset.trustedOrigins}:{}),...(asset.limits?{limits:asset.limits}:{}),...(part.morphs?{morphs:part.morphs}:{})});}
+      await this.applyCustomization({selections:{body:null,face:null,skin:null,hair:null,eyes:null,brows:null,nose:null,mouth:null,top:null,bottom:null,shoes:null,accessory:null},items,...(character.colors?{colors:character.colors}:{})});
     },
     update(deltaSeconds){
       if(!Number.isFinite(deltaSeconds)||deltaSeconds<0)throw new ToonCoreError("INVALID_NUMBER","Delta time must be finite and non-negative.");
@@ -87,8 +93,16 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer,opti
     resume(){if(status==="paused")status="ready";},
     setPerspectiveCamera(camera){if(renderer.setPerspectiveCamera)renderer.setPerspectiveCamera(scene,camera);},
     setLookAtPose(pose){if(renderer.setLookAtPose)renderer.setLookAtPose(scene,pose);},
-    async applyCustomization(customization){if(!renderer.applyCustomization)throw new ToonCoreError("INVALID_LIFECYCLE","Renderer does not support character customization.");if(customization.items.some(item=>!item.assetId&&item.assetUri))throw new ToonCoreError("INVALID_DEFINITION","Customization assets must be resolved from stable Asset IDs.");if(options.assetResolver){const resolvedItems=customization.items.map(item=>{if(!item.assetId)return item;const asset=options.assetResolver!.resolve(item.assetId);if(!asset)throw new ToonCoreError("INVALID_DEFINITION","Unknown customization asset ID: "+item.assetId);return{...item,assetUri:asset.uri,...(asset.integrity?{integrity:asset.integrity}:{}),...(asset.trustedOrigins?{trustedOrigins:asset.trustedOrigins}:{}),...(asset.limits?{limits:asset.limits}:{})}});await renderer.applyCustomization(scene,{...customization,items:resolvedItems});return;}if(customization.items.some(item=>item.assetId))throw new ToonCoreError("INVALID_LIFECYCLE","An asset resolver is required for Asset ID customization.");await renderer.applyCustomization(scene,customization);},
+    async applyCustomization(customization){if(!renderer.applyCustomization)throw new ToonCoreError("INVALID_LIFECYCLE","Renderer does not support character customization.");if(customization.items.some(item=>!item.assetId&&item.assetUri))throw new ToonCoreError("INVALID_DEFINITION","Customization assets must be resolved from stable Asset IDs.");if(options.assetResolver){const resolvedItems=customization.items.map(item=>{
+          const asset=item.assetId?options.assetResolver!.resolve(item.assetId):undefined;
+          if(item.assetId&&!asset)throw new ToonCoreError("INVALID_DEFINITION","Unknown customization asset ID: "+item.assetId);
+          const texture=item.textureId?options.assetResolver!.resolveTexture?.(item.textureId):undefined;
+          if(item.textureId&&!texture)throw new ToonCoreError("INVALID_DEFINITION","Unknown customization texture asset ID: "+item.textureId);
+          return {...item,...(asset?{assetUri:asset.uri,...(asset.integrity?{integrity:asset.integrity}:{}),...(asset.trustedOrigins?{trustedOrigins:asset.trustedOrigins}:{}),...(asset.limits?{limits:asset.limits}:{})}:{}),...(texture?{textureUri:texture.uri,...(texture.integrity?{textureIntegrity:texture.integrity}:{}),...(texture.trustedOrigins?{textureTrustedOrigins:texture.trustedOrigins}:{}),...(texture.limits?{textureLimits:texture.limits}:{})}:{})};
+        });await renderer.applyCustomization(scene,{...customization,items:resolvedItems});return;}if(customization.items.some(item=>item.assetId))throw new ToonCoreError("INVALID_LIFECYCLE","An asset resolver is required for Asset ID customization.");await renderer.applyCustomization(scene,customization);},
     setQuality(tier){if(renderer.setQuality)renderer.setQuality(tier);},
+    setCharacterColors(colors){renderer.setCharacterColors?.(scene,colors);},
+    setBoneTransform(boneName,transform){if(!renderer.setBoneTransform)throw new ToonCoreError("INVALID_LIFECYCLE","Renderer does not support bone authoring.");renderer.setBoneTransform(scene,boneName,transform);},
     destroy(){if(status==="disposed")return;loadGeneration++;renderer.dispose(scene);status="disposed";}
   };
 }
