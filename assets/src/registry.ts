@@ -6,6 +6,7 @@ export interface AssetRegistry{
   register(manifest:AssetManifest):void;
   get(id:string):AssetManifest|undefined;
   resolve(id:string):RuntimeAsset|undefined;
+  resolveTexture(id:string):import("@toon2.5d/core").RuntimeTextureAsset|undefined;
   clear():void;
 }
 
