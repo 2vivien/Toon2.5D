@@ -32,9 +32,5 @@ jobs:
           sudo apt-get install -y blender
       - name: Generate reference GLB
         run: blender --background --python assets/tools/build_reference_head.py
-      - name: Publish reference GLB
-        uses: actions/upload-artifact@v4
-        with:
-          name: toon2.5d-reference-head
-          path: assets/generated/head.reference.glb
-          if-no-files-found: error
+      - name: Validate reference GLB
+        run: test -s assets/generated/head.reference.glb
