@@ -30,6 +30,16 @@ export interface ThreeRendererOptions{
   readonly pixelRatio?:number;
 }
 
+
+async function loadTextureSecure(uri:string,options:{readonly integrity?:string;readonly trustedOrigins?:readonly string[];readonly maxBytes?:number;readonly maxTexturePixels?:number}={}):Promise<THREE.Texture>{
+ const parsed=new URL(uri);const dev=(globalThis as {process?:{env?:Record<string,string|undefined>}}).process?.env?.NODE_ENV==="development";const localhost=parsed.hostname==="localhost"||parsed.hostname==="127.0.0.1"||parsed.hostname==="::1";if(parsed.protocol!=="https:"&&!(dev&&parsed.protocol==="http:"&&localhost))throw new Error("Remote textures must use HTTPS.");if(options.trustedOrigins?.length&&!options.trustedOrigins.includes(parsed.origin))throw new Error("Texture origin is not trusted.");
+ const response=await fetch(uri,{credentials:"omit"});if(!response.ok)throw new Error(`Texture request failed: ${response.status} ${response.statusText}`);const declared=response.headers.get("content-length");if(options.maxBytes!==undefined&&declared&&Number(declared)>options.maxBytes)throw new Error("Texture exceeds configured byte-size limit.");const data=await response.arrayBuffer();if(options.maxBytes!==undefined&&data.byteLength>options.maxBytes)throw new Error("Texture exceeds configured byte-size limit.");
+ if(options.integrity){if(!options.integrity.startsWith("sha256-"))throw new Error("Only sha256 texture integrity is supported.");const digest=await crypto.subtle.digest("SHA-256",data);const encoded=btoa(String.fromCharCode(...new Uint8Array(digest)));if("sha256-"+encoded!==options.integrity)throw new Error("Texture integrity verification failed.");}
+ const blob=new Blob([data]);const objectUrl=URL.createObjectURL(blob);try{const texture=await new THREE.TextureLoader().loadAsync(objectUrl);const image=texture.image as {width?:number;height?:number}|undefined;if(options.maxTexturePixels!==undefined&&image?.width&&image.height&&image.width*image.height>options.maxTexturePixels){texture.dispose();throw new Error("Texture pixel limit exceeded.");}return texture}finally{URL.revokeObjectURL(objectUrl)}
+}
+function applyTextureToRoot(root:THREE.Object3D,texture:THREE.Texture):void{root.traverse(object=>{if(!(object instanceof THREE.Mesh))return;const materials=Array.isArray(object.material)?object.material:[object.material];for(const material of materials){if("map"in material){material.map=texture;material.needsUpdate=true}}})}
+function applyColorToRoot(root:THREE.Object3D,color:string):void{const parsed=new THREE.Color(color);root.traverse(object=>{if(!(object instanceof THREE.Mesh))return;const materials=Array.isArray(object.material)?object.material:[object.material];for(const material of materials){if("color"in material){(material as THREE.MeshStandardMaterial).color.copy(parsed);material.needsUpdate=true}}})}
+
 function disposeObject(root:THREE.Object3D):void{
   root.traverse(object=>{
     if(!(object instanceof THREE.Mesh))return;
@@ -154,27 +164,19 @@ export class ThreeRenderer implements Renderer{
   async applyCustomization(scene:RendererScene,customization:CharacterCustomization):Promise<void>{
     const avatar=this.requireScene(scene);
     for(const item of customization.items){
-      const slot=avatar.slots.get(item.slot);
-      if(!slot)continue;
-      for(const child of slot.children.slice()){slot.remove(child);disposeObject(child)}
+      const slot=avatar.slots.get(item.slot); if(!slot)continue;
+      if(item.slot==="accessory"){for(const child of slot.children.slice())if(child.userData.customizationItemId===item.id){slot.remove(child);disposeObject(child)}}
+      else for(const child of slot.children.slice()){slot.remove(child);disposeObject(child)}
       if(item.morphs)avatar.customizationMorphs={...avatar.customizationMorphs,...item.morphs};
       if(item.assetUri){
         const gltf=await loadGLTF(item.assetUri,{renderer:this.renderer});
         if(this.scenes.get(scene.id)!==avatar){disposeObject(gltf.scene);throw new Error("Renderer scene was disposed during customization loading.")}
+        gltf.scene.userData.customizationItemId=item.id;
+        if(item.textureUri){const texture=await loadTextureSecure(item.textureUri,{integrity:item.textureIntegrity,trustedOrigins:item.textureTrustedOrigins,maxBytes:item.textureLimits?.maxBytes,maxTexturePixels:item.textureLimits?.maxTexturePixels});applyTextureToRoot(gltf.scene,texture);}
         slot.add(gltf.scene);
       }
-      if(item.textureUri){
-        const texture=await new THREE.TextureLoader().loadAsync(item.textureUri);
-        if(this.scenes.get(scene.id)!==avatar){texture.dispose();throw new Error("Renderer scene was disposed during texture loading.")}
-        const previous=slot.userData.texture as THREE.Texture|undefined;
-        previous?.dispose();slot.userData.texture=texture;
-        slot.traverse(object=>{
-          if(!(object instanceof THREE.Mesh))return;
-          const materials=Array.isArray(object.material)?object.material:[object.material];
-          for(const material of materials)if("map"in material){material.map=texture;material.needsUpdate=true}
-        });
-      }
     }
+    if(customization.colors){for(const [slotName,color] of Object.entries(customization.colors)){if(!color)continue;const slot=avatar.slots.get(slotName);if(slot)applyColorToRoot(slot,color)}}
   }
 
   resize(width:number,height:number):void{
