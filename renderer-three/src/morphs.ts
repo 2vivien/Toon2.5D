@@ -9,7 +9,8 @@ export function collectMorphBindings(root:THREE.Object3D,mappings:readonly Morph
   const map:MorphBindingMap=new Map();
   root.traverse(object=>{
     if(!(object instanceof THREE.Mesh)||!object.morphTargetDictionary)return;
-    for(const mapping of mappings){
+    const requested=mappings.length>0?mappings:FACE_PARAMETERS.map(parameter=>({parameter,targets:[parameter],scale:1}));
+    for(const mapping of requested){
       for(const target of mapping.targets){
         const index=object.morphTargetDictionary[target];
         if(index===undefined)continue;
@@ -17,14 +18,12 @@ export function collectMorphBindings(root:THREE.Object3D,mappings:readonly Morph
         map.set(mapping.parameter,[...current,{mesh:object,index,scale:mapping.scale}]);
       }
     }
-    if(mappings.length===0)for(const parameter of FACE_PARAMETERS){
-      const index=object.morphTargetDictionary[parameter];
-      if(index===undefined)continue;
-      const current=map.get(parameter)??[];
-      map.set(parameter,[...current,{mesh:object,index,scale:1}]);
-    }
   });
   return map;
+}
+
+export function findMissingMorphParameters(map:MorphBindingMap,parameters:readonly FaceParameter[]=FACE_PARAMETERS):readonly FaceParameter[]{
+  return parameters.filter(parameter=>!map.has(parameter));
 }
 
 export function applyMorphWeights(map:MorphBindingMap,weights:FaceWeights):void{
