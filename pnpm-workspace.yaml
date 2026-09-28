@@ -1,3 +1,7 @@
 packages:
-  - "modules/*"
+  - "core"
+  - "assets"
+  - "animation"
+  - "renderer-three"
+  - "react"
   - "examples/*"
