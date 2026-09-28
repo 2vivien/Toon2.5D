@@ -26,4 +26,4 @@ Toon2.5D combines:
 
 ## Non-goals
 
-We will not replace VRM, glTF or Three.js. We will not build a general game engine, support every humanoid rig in V0, or target photorealism.
+We will not replace VRM, glTF or Three.js. We will not build a general game engine, support arbitrary humanoid rigs without an explicit manifest mapping, or target photorealism.
