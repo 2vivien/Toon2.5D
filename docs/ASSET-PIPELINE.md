@@ -6,32 +6,38 @@ Blender -> model/retopology/UV/materials/rig/morph targets/animation -> GLB -> v
 
 ## V0 model contract
 
-Every head asset defines:
+The reference head defines:
+
 - stable root;
-- predictable face anchors;
-- optional skeleton;
-- declared morph target names;
+- predictable face structure;
+- declared semantic morph targets;
 - Toon material slots;
-- camera framing metadata;
 - asset version.
+
+Optional skeleton and camera framing metadata are future asset capabilities.
 
 ## Semantic names
 
-Nodes:
+Canonical conceptual nodes include:
+
 AvatarRoot, Head, Face, Eye.L, Eye.R, Brow.L, Brow.R, Mouth, Hair.
 
-Morph targets:
-mouthSmile, mouthOpen, eyeBlink.L, eyeBlink.R, browRaise.L, browRaise.R, cheekRaise.
-
-Names are part of the asset contract.
+The V0 reference asset exposes the complete 52-parameter facial vocabulary as shape keys. Production assets may use aliases declared by their manifest.
 
 ## Validation
 
-1. Schema validation.
-2. Structural validation.
-3. Canonical visual renders.
-4. Performance benchmarks.
-5. Packaging and hashing.
+Current automated pipeline:
+
+1. Generate the deterministic reference GLB.
+2. Validate the generated GLB and its 52 facial morph targets.
+3. Run TypeScript build, typecheck and tests.
+
+Future gates:
+
+1. Structural validation.
+2. Canonical visual renders.
+3. Performance benchmarks.
+4. Packaging and hashing.
 
 ## Compression
 
@@ -40,11 +46,12 @@ Use established glTF ecosystem tooling such as Meshopt/Draco for geometry and KT
 ## Asset variants
 
 Where useful:
+
 avatar-head.high.glb
 avatar-head.medium.glb
 avatar-head.low.glb
 
-The runtime chooses a variant through a quality policy.
+The runtime quality policy for selecting variants is future work.
 
 ## Separation
 
