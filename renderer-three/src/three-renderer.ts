@@ -163,3 +163,27 @@ export class ThreeRenderer implements Renderer{
       }
     }
   }
+
+  resize(width:number,height:number):void{
+    const aspect=Math.max(width,1)/Math.max(height,1);
+    this.camera.left=-aspect;this.camera.right=aspect;this.camera.top=1;this.camera.bottom=-1;
+    this.camera.updateProjectionMatrix();this.perspectiveCamera.aspect=aspect;this.perspectiveCamera.updateProjectionMatrix();this.renderer.setSize(width,height,false);
+  }
+
+  dispose(scene:RendererScene):void{
+    const avatar=this.requireScene(scene);
+    disposeObject(avatar.root);
+    this.scene.remove(avatar.root);this.scenes.delete(avatar.id);
+  }
+
+  destroy():void{
+    for(const scene of this.scenes.values())this.dispose(scene);
+    this.renderer.dispose();
+  }
+
+  private requireScene(scene:RendererScene):AvatarScene{
+    const avatar=this.scenes.get(scene.id);
+    if(!avatar)throw new Error("Renderer scene is not owned by this renderer.");
+    return avatar;
+  }
+}
