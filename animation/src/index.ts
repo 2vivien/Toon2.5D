@@ -5,3 +5,4 @@ export * from "./source.js";
 export * from "./runtime.js";
 export * from "./state-machine.js";
 export * from "./blend-player.js";
+export * from "./events.js";
