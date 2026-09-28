@@ -23,7 +23,10 @@ export interface GLTFLoadOptions{
 
 function validateOrigin(url:string,trustedOrigins?:readonly string[]):void{
   const protocol=new URL(url).protocol;
-  if(protocol!=="https:"&&protocol!=="http:")throw new Error("Unsupported asset URL scheme.");
+  const parsed=new URL(url);
+  const dev=(globalThis as {process?:{env?:Record<string,string|undefined>}}).process?.env?.NODE_ENV==="development";
+  const localhost=parsed.hostname==="localhost"||parsed.hostname==="127.0.0.1"||parsed.hostname==="::1";
+  if(protocol!=="https:"&&!(dev&&protocol==="http:"&&localhost))throw new Error("Remote assets must use HTTPS.");
   if(trustedOrigins&&trustedOrigins.length>0){
     const origin=new URL(url).origin;
     if(!trustedOrigins.includes(origin))throw new Error("Asset origin is not trusted.");
@@ -80,7 +83,6 @@ export async function loadGLTF(url:string,options:GLTFLoadOptions={}):Promise<GL
   }
   if(options.maxBytes!==undefined&&data.byteLength>options.maxBytes)throw new Error("Asset exceeds configured byte-size limit.");
   validateGLB(data);
-  await verifyIntegrity(data,options.integrity);
   await verifyIntegrity(data,options.integrity);
   const loader=new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
