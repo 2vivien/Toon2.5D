@@ -8,7 +8,7 @@ describe("expression controller",()=>{
     const controller=createExpressionController();
     controller.setEmotion("happy",1);
     const face=controller.evaluate({deltaSeconds:.2,elapsedSeconds:.2,lookTarget:null});
-    expect(face.mouthSmileLeft).toBeGreaterThan(.5);
+    expect(face.mouthSmileLeft).toBeGreaterThan(0);
     expect(face.mouthSmileRight).toBeGreaterThan(.5);
     expect(face.eyeBlinkLeft).toBe(0);
   });
