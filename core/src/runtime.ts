@@ -2,6 +2,7 @@ import {ToonCoreError}from"./errors.js";
 import {createNeutralFace}from"./face-defaults.js";
 import {validateDefinition}from"./definition.js";
 import {createExpressionController}from"./expression/controller.js";
+import {createLookAtController}from"./look-at.js";
 import type {Renderer,RendererScene}from"./renderer.js";
 import type {AvatarDefinition,FaceWeights,RuntimeAsset,RuntimeStatus,Vec3}from"./types.js";
 import type {ExpressionController}from"./expression/controller.js";
@@ -30,6 +31,7 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer):Ava
   validateDefinition(definition);
   const scene:RendererScene=renderer.createScene();
   const expression=createExpressionController();
+  const lookAt=createLookAtController();
   let status:RuntimeStatus="ready";
   let face=createNeutralFace();
   let elapsed=0;
@@ -52,6 +54,7 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer):Ava
       if(status!=="ready")return;
       elapsed+=deltaSeconds;
       face=expression.evaluate({deltaSeconds,elapsedSeconds:elapsed,lookTarget:null});
+      if(renderer.setLookAtPose)renderer.setLookAtPose(scene,lookAt.update(deltaSeconds));
     },
     render(){
       if(status!=="ready")return;
@@ -62,7 +65,7 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer):Ava
       if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)throw new ToonCoreError("INVALID_NUMBER","Renderer dimensions must be positive and finite.");
       renderer.resize(width,height);
     },
-    setLookAt(target){expression.setLookTarget(target);},
+    setLookAt(target){expression.setLookTarget(target);lookAt.setTarget(target);},
     setFaceWeights(weights){expression.setExternalWeights(weights);},
     clearFaceWeights(){expression.clearExternalWeights();},
     pause(){if(status==="ready")status="paused";},
