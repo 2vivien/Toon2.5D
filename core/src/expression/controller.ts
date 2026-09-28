@@ -24,7 +24,7 @@ export function createExpressionController():ExpressionController{
   const blink=blinkSource();
   const look=lookAtSource();
   const lip=lipSyncSource(()=>lipState);
-  const frame={deltaSeconds:0,elapsedSeconds:0,lookTarget:null as Vec3|null};
+  const frame:{deltaSeconds:number;elapsedSeconds:number;lookTarget:Vec3|null}={deltaSeconds:0,elapsedSeconds:0,lookTarget:null};
   return{
     setEmotion(id,intensity){emotion.setEmotion(id,intensity);},
     setLookTarget(nextTarget){target=nextTarget;},
@@ -36,7 +36,10 @@ export function createExpressionController():ExpressionController{
       frame.elapsedSeconds=context.elapsedSeconds;
       frame.lookTarget=target;
       const contributions:ExpressionContribution[]=[];
-      for(const source of [emotion,lip,blink,look])for(const contribution of source.evaluate(frame))contributions.push(contribution);
+      for(const contribution of emotion.evaluate(frame))contributions.push(contribution);
+      for(const contribution of lip.evaluate(frame))contributions.push(contribution);
+      for(const contribution of blink.evaluate(frame))contributions.push(contribution);
+      for(const contribution of look.evaluate(frame))contributions.push(contribution);
       for(const source of custom.values())for(const contribution of source.evaluate(frame))contributions.push(contribution);
       return applyFaceConstraints(compose(contributions));
     }
