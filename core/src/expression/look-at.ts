@@ -1,4 +1,5 @@
 import {clamp}from"../math.js";
+import {solveLookAtState}from"../look-at.js";
 import type {ExpressionContext,ExpressionContribution,ExpressionSource}from"./types.js";
 
 export interface LookAtConfig{readonly horizontalLimit:number;readonly verticalLimit:number;readonly smoothing:number}
@@ -28,8 +29,9 @@ export function lookAtSource(config:LookAtConfig={horizontalLimit:1,verticalLimi
     id:"lookAt",
     evaluate(context:ExpressionContext):readonly ExpressionContribution[]{
       const target=context.lookTarget;
-      const desiredHorizontal=target?clamp(target.x,-horizontalLimit,horizontalLimit):0;
-      const desiredVertical=target?clamp(target.y,-verticalLimit,verticalLimit):0;
+      const solved=target?solveLookAtState({x:0,y:0,z:0},target,{yaw:horizontalLimit,pitch:verticalLimit}):null;
+      const desiredHorizontal=solved?.yaw??0;
+      const desiredVertical=solved?.pitch??0;
       horizontal+=(desiredHorizontal-horizontal)*smoothing;
       vertical+=(desiredVertical-vertical)*smoothing;
       const values=[horizontal>0?horizontal/horizontalLimit:0,horizontal<0?-horizontal/horizontalLimit:0,
