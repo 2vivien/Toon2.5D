@@ -154,7 +154,7 @@ def build():
     for obj in list(bpy.context.scene.objects):
         if obj!=root and obj.parent is None: obj.parent=root
 
-    output=Path(bpy.path.abspath("//generated/head.reference.glb"))
+    output=Path(__file__).resolve().parents[1]/"generated"/"head.reference.glb"
     output.parent.mkdir(parents=True,exist_ok=True)
     bpy.ops.export_scene.gltf(
         filepath=str(output),export_format="GLB",export_yup=True,
