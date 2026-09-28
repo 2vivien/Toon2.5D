@@ -10,7 +10,8 @@ function renderer():Renderer{
     setFaceWeights:vi.fn(),
     render:vi.fn(),
     resize:vi.fn(),
-    dispose:vi.fn()
+    dispose:vi.fn(),
+    applyCustomization:vi.fn(async()=>undefined)
   };
 }
 
