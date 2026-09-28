@@ -4,9 +4,9 @@
 
 Represent an avatar as a stable, serializable definition rather than a framework component.
 
-## Current V0 shape
+## V1 runtime shape
 
-The current runtime definition is intentionally minimal:
+The V1 runtime keeps a stable logical asset definition while CharacterDefinition provides composable body, face, skin, hair, eyes, brows, nose, mouth, clothing, accessories, colors and expressions:
 
 ```ts
 type AvatarDefinition = {
@@ -18,9 +18,9 @@ type AvatarDefinition = {
 
 It identifies the logical asset and semantic facial profile used by the runtime.
 
-## Target compositional model
+## CharacterDefinition compositional model
 
-A future character definition may expand into:
+The current CharacterDefinition supports:
 
 ```ts
 type CharacterDefinition = {
@@ -39,7 +39,7 @@ type CharacterDefinition = {
 };
 ```
 
-This richer model is an architectural target, not the current V1 runtime contract.
+This richer model is part of the V1 runtime contract and resolves stable Asset IDs through the configured AssetResolver.
 
 ## IDs
 
@@ -72,11 +72,11 @@ Definition
   -> Morph/bone bindings
 ```
 
-The current runtime resolves the asset reference and expression profile rather than exposing the full composition pipeline.
+The runtime resolves every CharacterDefinition part through the AssetResolver before applying slot-based customization.
 
 ## Customization
 
-Customization is designed to be data-driven. Adding a hairstyle or accessory must not require renderer changes. The complete runtime customization facade is planned for a later phase.
+Customization is designed to be data-driven. Adding a hairstyle or accessory must not require renderer changes. The runtime customization facade supports slot-based asset and texture replacement with validation and renderer-owned disposal.
 
 ## Determinism
 
@@ -94,4 +94,4 @@ Never silently reinterpret old definitions.
 
 ## Future full-body extension
 
-The model reserves room for torso, clothing, hands, legs, footwear and body proportions, but The current V1 reference remains head-focused.
+The model reserves room for torso, clothing, hands, legs, footwear and body proportions, but V1 remains compatible with the reference head while reserving full-body slots for composable character assets.
