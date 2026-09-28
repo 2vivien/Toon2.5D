@@ -111,7 +111,9 @@ export class ThreeRenderer implements Renderer{
 
   update(deltaSeconds:number):void{if(!Number.isFinite(deltaSeconds)||deltaSeconds<0)return;for(const avatar of this.scenes.values())avatar.mixer?.update(deltaSeconds)}
 
-  getAnimationMixer(scene:RendererScene):THREE.AnimationMixer|undefined{return this.requireScene(scene).mixer}\n  getAnimationNames(scene:RendererScene):readonly string[]{return this.requireScene(scene).animations.map(clip=>clip.name).filter(Boolean)}
+  getAnimationMixer(scene:RendererScene):THREE.AnimationMixer|undefined{return this.requireScene(scene).mixer}
+  getScenes():readonly RendererScene[]{return [...this.scenes.values()]}
+  getAnimationNames(scene:RendererScene):readonly string[]{return this.requireScene(scene).animations.map(clip=>clip.name).filter(Boolean)}
   getBoneNames(scene:RendererScene):readonly string[]{const names:string[]=[];this.requireScene(scene).loadedRoot?.traverse(object=>{if(object instanceof THREE.Bone)names.push(object.name)});return names}
 
 
