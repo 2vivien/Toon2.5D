@@ -24,7 +24,7 @@ The cache provides async preload, acquire/release reference counts, byte-budget 
 
 ## Shared rendering and quality
 
-SharedThreeRenderer coordinates multiple avatar scenes on one Three.js context. DynamicQualityController reacts to visibility and measured frame time and selects Low, Medium, High or Ultra pixel-ratio tiers. React integrates IntersectionObserver and the controller without placing React state in the frame loop.
+SharedThreeRenderer coordinates multiple avatar scenes on one WebGL Three.js context. WebGPUAvatarRenderer provides the same renderer contract through Three.js WebGPU initialization. DynamicQualityController reacts to visibility and measured frame time and selects Low, Medium, High or Ultra pixel-ratio tiers. React integrates IntersectionObserver and the controller without placing React state in the frame loop.
 
 ## Studio
 
