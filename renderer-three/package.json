@@ -5,6 +5,6 @@
   "main":"./dist/index.js",
   "types":"./dist/index.d.ts",
   "exports":{".":{"types":"./dist/index.d.ts","import":"./dist/index.js"}},
-  "dependencies":{"@toon2.5d/core":"workspace:*","three":"0.186.1"},"devDependencies":{"@types/three":"0.186.0"},
+  "dependencies":{"@toon2.5d/core":"workspace:*","@toon2.5d/assets":"workspace:*","three":"0.186.1"},"devDependencies":{"@types/three":"0.186.0"},
   "scripts":{"build":"tsc -p tsconfig.json","typecheck":"tsc -p tsconfig.json --noEmit"}
 }
