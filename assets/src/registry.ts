@@ -7,6 +7,7 @@ export interface AssetRegistry{
   get(id:string):AssetManifest|undefined;
   resolve(id:string):RuntimeAsset|undefined;
   resolveTexture(id:string):import("@toon2.5d/core").RuntimeTextureAsset|undefined;
+  list():readonly AssetManifest[];
   clear():void;
 }
 
@@ -25,6 +26,7 @@ export function createAssetRegistry():AssetRegistry{
       if(!manifest||manifest.mime==="model/gltf-binary")return undefined;
       return {id:manifest.id,version:manifest.version,uri:manifest.uri,...(manifest.integrity?{integrity:manifest.integrity}:{}),...(manifest.trustedOrigins?{trustedOrigins:manifest.trustedOrigins}:{}),...(manifest.limits?{limits:{maxBytes:manifest.limits.maxBytes,maxTexturePixels:manifest.limits.maxTexturePixels}}:{})};
     },
+    list(){return [...entries.values()]},
     clear(){entries.clear();}
   };
 }
