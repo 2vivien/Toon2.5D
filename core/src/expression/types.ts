@@ -1,7 +1,7 @@
 import type {FaceParameter,FaceWeights,Vec3} from "../types.js";
 
 export type BlendMode="add"|"override"|"multiply"|"max"|"min";
-export type ExpressionSourceId="base"|"emotion"|"animation"|"lipSync"|"blink"|"lookAt"|"external";
+export type ExpressionSourceId="base"|"emotion"|"animation"|"lipSync"|"blink"|"lookAt"|"external"|"state-machine";
 
 export interface ExpressionContribution{
   readonly source:ExpressionSourceId;
