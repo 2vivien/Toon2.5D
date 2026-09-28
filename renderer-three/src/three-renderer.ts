@@ -86,10 +86,11 @@ export class ThreeRenderer implements Renderer{
   }
 
   async loadAsset(scene:RendererScene,asset:RuntimeAsset):Promise<void>{
-    await this.loadModel(scene,asset.uri,asset.morphBindings,asset);
+    await this.loadModelFromAsset(scene,asset);
   }
 
-  async loadModel(scene:RendererScene,url:string,mappings:readonly RendererMorphBinding[]=[],asset?:RuntimeAsset):Promise<void>{
+  private async loadModelFromAsset(scene:RendererScene,asset:RuntimeAsset):Promise<void>{
+    const url=asset.uri;const mappings=asset.morphBindings;
     const avatar=this.requireScene(scene);
     const gltf=await loadGLTF(url,{renderer:this.renderer,...(asset?.limits?.maxBytes!==undefined?{maxBytes:asset.limits.maxBytes}:{}),...(asset?.limits?.maxTexturePixels!==undefined?{maxTexturePixels:asset.limits.maxTexturePixels}:{}),...(asset?.limits?.maxVertices!==undefined?{maxVertices:asset.limits.maxVertices}:{}),...(asset?.limits?.maxAnimations!==undefined?{maxAnimations:asset.limits.maxAnimations}:{}),...(asset?.trustedOrigins?{trustedOrigins:asset.trustedOrigins}:{}),...(asset?.integrity?{integrity:asset.integrity}:{})});
     if(this.scenes.get(scene.id)!==avatar){
