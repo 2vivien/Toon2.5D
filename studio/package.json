@@ -1,28 +1,12 @@
 {
   "name": "@toon2.5d/studio",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": false,
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
-  "dependencies": {
-    "@toon2.5d/animation": "workspace:*",
-    "@toon2.5d/core": "workspace:*",
-    "@toon2.5d/react": "workspace:*",
-    "react": "^19.3.0",
-    "@toon2.5d/renderer-three": "workspace:*"
-  },
-  "devDependencies": {
-    "@types/react": "^19.1.12"
-  },
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
-  }
+  "exports": {".": {"types": "./dist/index.d.ts", "import": "./dist/index.js"}},
+  "dependencies": {"@toon2.5d/animation": "workspace:*", "@toon2.5d/core": "workspace:*", "@toon2.5d/react": "workspace:*", "react": "^19.3.0", "@toon2.5d/renderer-three": "workspace:*"},
+  "devDependencies": {"@types/react": "^19.1.12"},
+  "scripts": {"build":"tsc -p tsconfig.json","typecheck":"tsc -p tsconfig.json --noEmit"}
 }
