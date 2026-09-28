@@ -1,20 +1,41 @@
 import {describe,expect,it}from"vitest";
 import {createExpressionController}from"../core/src/expression/controller.js";
+import {composeInto}from"../core/src/expression/composer.js";
+import {createNeutralFace}from"../core/src/face-defaults.js";
 
 describe("expression controller",()=>{
   it("composes emotion and blink",()=>{
     const controller=createExpressionController();
     controller.setEmotion("happy",1);
     const face=controller.evaluate({deltaSeconds:.2,elapsedSeconds:.2,lookTarget:null});
-    expect(face.mouthSmileLeftLeft).toBeGreaterThan(.5);
+    expect(face.mouthSmileLeft).toBeGreaterThan(.5);
+    expect(face.mouthSmileRight).toBeGreaterThan(.5);
     expect(face.eyeBlinkLeft).toBe(0);
   });
+
   it("keeps look-at independent from mouth",()=>{
     const controller=createExpressionController();
     controller.setEmotion("happy",1);
     controller.setLookTarget({x:1,y:0,z:1});
     const face=controller.evaluate({deltaSeconds:.016,elapsedSeconds:0,lookTarget:null});
-    expect(face.eyeLookHorizontal).toBeGreaterThan(.5);
-    expect(face.mouthSmile).toBeGreaterThan(.5);
+    expect(face.eyeLookOutLeft).toBeGreaterThan(0);
+    expect(face.mouthSmileLeft).toBeGreaterThan(.5);
+  });
+
+  it("blends weighted overrides instead of snapping",()=>{
+    const face=createNeutralFace();
+    const output=composeInto([{
+      source:"external",parameter:"mouthSmileLeft",value:1,weight:.5,priority:10,mode:"override"
+    }],face);
+    expect(output.mouthSmileLeft).toBeCloseTo(.5);
+  });
+
+  it("blends multiplication around the current value",()=>{
+    const face=createNeutralFace();
+    face.mouthSmileLeft=.8;
+    const output=composeInto([{
+      source:"external",parameter:"mouthSmileLeft",value:0,weight:.5,priority:10,mode:"multiply"
+    }],face);
+    expect(output.mouthSmileLeft).toBeCloseTo(.4);
   });
 });
