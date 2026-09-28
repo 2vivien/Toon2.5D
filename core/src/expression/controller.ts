@@ -12,6 +12,8 @@ export interface ExpressionController{
   setEmotion(id:EmotionId,intensity:number):void;
   setLookTarget(target:Vec3|null):void;
   setLipSync(state:LipSyncState):void;
+  setExternalWeights(weights:Partial<FaceWeights>):void;
+  clearExternalWeights():void;
   addSource(source:ExpressionSource):void;
   removeSource(id:ExpressionSource["id"]):void;
   evaluate(context:ExpressionContext):FaceWeights;
@@ -20,6 +22,7 @@ export interface ExpressionController{
 export function createExpressionController():ExpressionController{
   let target:Vec3|null=null;
   let lipState:LipSyncState={viseme:null,weight:0};
+  let external:Partial<FaceWeights>={};
   const custom=new Map<ExpressionSource["id"],ExpressionSource>();
   const emotion=createEmotionSource();
   const blink=blinkSource();
@@ -32,6 +35,8 @@ export function createExpressionController():ExpressionController{
     setEmotion(id,intensity){emotion.setEmotion(id,intensity);},
     setLookTarget(nextTarget){target=nextTarget;},
     setLipSync(state){lipState=state;},
+    setExternalWeights(weights){external={...weights};},
+    clearExternalWeights(){external={};},
     addSource(source){custom.set(source.id,source);},
     removeSource(id){custom.delete(id);},
     evaluate(context){
@@ -44,6 +49,10 @@ export function createExpressionController():ExpressionController{
       for(const contribution of blink.evaluate(frame))contributions.push(contribution);
       for(const contribution of look.evaluate(frame))contributions.push(contribution);
       for(const source of custom.values())for(const contribution of source.evaluate(frame))contributions.push(contribution);
+      for(const parameter of Object.keys(external)as Array<keyof FaceWeights>){
+        const value=external[parameter];
+        if(value!==undefined)contributions.push({source:"external",parameter,value,weight:1,priority:100,mode:"override"});
+      }
       return applyFaceConstraints(composeInto(contributions,output));
     }
   };
