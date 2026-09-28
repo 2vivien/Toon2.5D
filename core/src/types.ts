@@ -45,4 +45,4 @@ export interface RuntimeAsset{
   readonly trustedOrigins?:readonly string[];
   readonly limits?:AssetLoadLimits;\n  readonly rig?:AssetRig;
 }
-export type AvatarDefinition=Readonly<{schemaVersion:1;assetId:string;expressionProfileId:string}>;
+export type AvatarDefinition=Readonly<{schemaVersion:1;assetId:string;expressionProfileId:string;character?:import("./character.js").CharacterDefinition}>;
