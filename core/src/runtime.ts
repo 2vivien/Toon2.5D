@@ -53,6 +53,7 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer):Ava
       if(!Number.isFinite(deltaSeconds)||deltaSeconds<0)throw new ToonCoreError("INVALID_NUMBER","Delta time must be finite and non-negative.");
       if(status!=="ready")return;
       elapsed+=deltaSeconds;
+      renderer.update?.(deltaSeconds);
       face=expression.evaluate({deltaSeconds,elapsedSeconds:elapsed,lookTarget:null});
       if(renderer.setLookAtPose)renderer.setLookAtPose(scene,lookAt.update(deltaSeconds));
     },
