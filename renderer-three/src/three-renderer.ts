@@ -27,7 +27,7 @@ function disposeObject(root:THREE.Object3D):void{
     if(!(object instanceof THREE.Mesh))return;
     object.geometry.dispose();
     const materials=Array.isArray(object.material)?object.material:[object.material];
-    for(const material of materials)material.dispose();
+    for(const material of materials){for(const key of ["map","normalMap","roughnessMap","metalnessMap","emissiveMap","aoMap","alphaMap"]){const texture=material[key as keyof THREE.Material] as THREE.Texture|undefined;if(texture instanceof THREE.Texture)texture.dispose();}material.dispose();}
   });
 }
 
@@ -128,13 +128,13 @@ export class ThreeRenderer implements Renderer{
     avatar.root.rotation.x=(weights.eyeLookDownLeft-weights.eyeLookUpLeft)*.2;
   }
 
-  render(_scene:RendererScene):void{this.renderer.render(this.scene,this.camera);}
+  render(scene:RendererScene):void{const avatar=this.requireScene(scene);const camera=avatar.root.userData.cameraMode==="perspective"?this.perspectiveCamera:this.camera;this.renderer.render(this.scene,camera);}
 
   setPerspectiveCamera(scene:RendererScene,camera:PerspectiveCameraState):void{const avatar=this.requireScene(scene);this.perspectiveCamera.fov=camera.fov;this.perspectiveCamera.aspect=camera.aspect;this.perspectiveCamera.near=camera.near;this.perspectiveCamera.far=camera.far;this.perspectiveCamera.updateProjectionMatrix();avatar.root.userData.cameraMode="perspective";}
 
   setLookAtPose(scene:RendererScene,pose:LookAtPose):void{const avatar=this.requireScene(scene);const bones:THREE.Object3D[]=[];avatar.loadedRoot?.traverse(object=>{if(object.name==="Head"||object.name==="head"||object.name==="Eye.L"||object.name==="Eye.R")bones.push(object);});for(const bone of bones){if(bone.name==="Head"||bone.name==="head")bone.quaternion.set(pose.head.x,pose.head.y,pose.head.z,pose.head.w);else if(bone.name==="Eye.L")bone.quaternion.set(pose.leftEye.x,pose.leftEye.y,pose.leftEye.z,pose.leftEye.w);else if(bone.name==="Eye.R")bone.quaternion.set(pose.rightEye.x,pose.rightEye.y,pose.rightEye.z,pose.rightEye.w);}}
 
-  async applyCustomization(scene:RendererScene,customization:CharacterCustomization):Promise<void>{const avatar=this.requireScene(scene);for(const item of customization.items){const slot=avatar.slots.get(item.slot);if(!slot)continue;slot.children.slice().forEach(child=>{slot.remove(child);disposeObject(child);});if(item.assetUri){const gltf=await loadGLTF(item.assetUri,{renderer:this.renderer});slot.add(gltf.scene);}if(item.textureUri){const texture=await new THREE.TextureLoader().loadAsync(item.textureUri);slot.userData.texture=texture;}}}
+  async applyCustomization(scene:RendererScene,customization:CharacterCustomization):Promise<void>{const avatar=this.requireScene(scene);for(const item of customization.items){const slot=avatar.slots.get(item.slot);if(!slot)continue;slot.children.slice().forEach(child=>{slot.remove(child);disposeObject(child);});if(item.assetUri){const gltf=await loadGLTF(item.assetUri,{renderer:this.renderer});slot.add(gltf.scene);}if(item.textureUri){const texture=await new THREE.TextureLoader().loadAsync(item.textureUri);slot.userData.texture=texture;slot.traverse(object=>{if(!(object instanceof THREE.Mesh))return;const materials=Array.isArray(object.material)?object.material:[object.material];for(const material of materials){if("map" in material){material.map=texture;material.needsUpdate=true;}}});}}}
 
 
   resize(width:number,height:number):void{
