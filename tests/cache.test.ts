@@ -1,0 +1,2 @@
+import{describe,expect,it}from"vitest";import{createResourceCache}from"../core/src/cache.js";
+describe("resource cache",()=>{it("deduplicates concurrent loads and releases entries",async()=>{let loads=0;const cache=createResourceCache<string,number>({ttlMs:1000});const loader=async()=>{loads+=1;return 42};const[a,b]=await Promise.all([cache.acquire("x",loader),cache.acquire("x",loader)]);expect(a).toBe(42);expect(b).toBe(42);expect(loads).toBe(1);cache.release("x");cache.release("x");expect(cache.get("x")).toBe(42);cache.invalidate("x");expect(cache.size()).toBe(0)})})
