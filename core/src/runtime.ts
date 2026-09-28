@@ -36,6 +36,7 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer):Ava
     get expression(){return expression},
     async load(asset){
       if(status==="disposed")throw new ToonCoreError("INVALID_LIFECYCLE","Cannot load a disposed avatar.");
+      if(status==="loading")throw new ToonCoreError("INVALID_LIFECYCLE","An avatar asset is already loading.");
       const generation=++loadGeneration;
       status="loading";
       try{await renderer.loadAsset(scene,asset);}
