@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import {loadGLTF}from"./gltf-loader.js";
+import {createFallbackAvatar}from"./fallback.js";
 import {applyMorphWeights,collectMorphBindings,findMissingMorphParameters,type MorphBindingMap}from"./morphs.js";
 import type {FaceWeights,Renderer,RendererScene,Transform,CharacterCustomization,PerspectiveCameraState,LookAtPose,QualityTier}from"@toon2.5d/core";
 
@@ -58,25 +59,13 @@ export class ThreeRenderer implements Renderer{
   }
 
   createScene():RendererScene{
-    const root=new THREE.Group();
+    const fallback=createFallbackAvatar();const {root,head,leftEye,rightEye,mouth}=fallback;
     const camera=new THREE.OrthographicCamera(-1,1,1,-1,.01,100);camera.position.z=5;
     const perspectiveCamera=new THREE.PerspectiveCamera(35,1,.01,100);perspectiveCamera.position.z=5;
-    const head=new THREE.Mesh(new THREE.SphereGeometry(1,32,24),new THREE.MeshStandardMaterial({color:0xf0b28f,roughness:.8}));
-    const eyeMaterial=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.5});
-    const pupilMaterial=new THREE.MeshStandardMaterial({color:0x222222,roughness:.4});
-    const leftEye=this.eye(eyeMaterial,pupilMaterial);
-    const rightEye=this.eye(eyeMaterial,pupilMaterial);
-    const mouth=new THREE.Mesh(new THREE.SphereGeometry(.28,20,12),new THREE.MeshStandardMaterial({color:0x5b2530,roughness:.7}));
-    head.scale.set(1,.92,.9);
-    leftEye.position.set(-.34,.18,.86);
-    rightEye.position.set(.34,.18,.86);
-    mouth.position.set(0,-.28,.88);
-    mouth.scale.set(1,.35,.3);
-    root.add(head,leftEye,rightEye,mouth);
     this.scene.add(root);
-    const slots=new Map<string,THREE.Group>();for(const slot of ["body","face","skin","hair","eyes","brows","nose","mouth","top","bottom","shoes","accessory"])slots.set(slot,new THREE.Group());slots.forEach(group=>root.add(group));const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots,customizationMorphs:{},camera,perspectiveCamera,animations:[]};
-    this.scenes.set(avatar.id,avatar);
-    return avatar;
+    const slots=new Map<string,THREE.Group>();for(const slot of ["body","face","skin","hair","eyes","brows","nose","mouth","top","bottom","shoes","accessory"])slots.set(slot,new THREE.Group());slots.forEach(group=>root.add(group));
+    const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots,customizationMorphs:{},camera,perspectiveCamera,animations:[]};
+    this.scenes.set(avatar.id,avatar);return avatar;
   }
 
   private eye(material:THREE.Material,pupilMaterial:THREE.Material):THREE.Mesh{
