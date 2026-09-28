@@ -55,30 +55,33 @@ The Studio must never invent a parallel avatar runtime.
 ## 3. Package graph
 
 ```
-@toon2.5d/core
+core/
+  ├── @toon2.5d/core
   ├── domain types
   ├── scene graph contracts
   ├── expression contracts
   ├── runtime lifecycle
   └── renderer contract
 
-@toon2.5d/assets
+assets/
+  ├── @toon2.5d/assets
   ├── manifests
   ├── validation
   ├── resolution
   └── cache contracts
 
-@toon2.5d/animation
+animation/
+  ├── @toon2.5d/animation
   ├── timeline
   ├── interpolation
   ├── state machine
   └── blending
 
-@toon2.5d/renderer-three
-  └── Three.js implementation
+renderer-three/
+  └── @toon2.5d/renderer-three
 
-@toon2.5d/react
-  └── framework adapter
+react/
+  └── @toon2.5d/react
 ```
 
 Dependency rule:
