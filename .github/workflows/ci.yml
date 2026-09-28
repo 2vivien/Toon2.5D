@@ -51,4 +51,4 @@ jobs:
       - run: pnpm build
       - run: pnpm exec vite build --config tests/browser/vite.config.mjs --outDir dist
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Release gates: frame-time p95, GPU timer, heap growth and WebGL context recovery\n        run: pnpm test:browser
+      - name: "Release gates: frame-time p95, GPU timer, heap growth and WebGL context recovery"\n        run: pnpm test:browser
