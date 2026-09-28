@@ -6,7 +6,8 @@ export function animationSource(player:AnimationPlayer):ExpressionSource{
   const contributions:ExpressionContribution[]=[];
   return {
     id:"animation",
-    evaluate(_context:ExpressionContext):readonly ExpressionContribution[]{
+    evaluate(context:ExpressionContext):readonly ExpressionContribution[]{
+      player.update(context.deltaSeconds);
       contributions.length=0;
       const values:FaceWeights=player.output();
       for(const parameter of FACE_PARAMETERS){
