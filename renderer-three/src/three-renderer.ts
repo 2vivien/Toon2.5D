@@ -29,6 +29,10 @@ export class ThreeRenderer implements Renderer{
   constructor(options:ThreeRendererOptions){
     this.renderer=new THREE.WebGLRenderer({canvas:options.canvas,antialias:true,alpha:true});
     this.scene.background=options.background===undefined?null:new THREE.Color(options.background);
+    const fill=new THREE.HemisphereLight(0xffffff,0x555555,1.4);
+    const key=new THREE.DirectionalLight(0xffffff,1.8);
+    key.position.set(2,3,4);
+    this.scene.add(fill,key);
     this.camera.position.z=5;
     this.renderer.setPixelRatio(Math.min(options.pixelRatio??1.5,2));
   }
