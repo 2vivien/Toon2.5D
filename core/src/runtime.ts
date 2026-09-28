@@ -29,6 +29,8 @@ export interface AvatarRuntime{
   setLookAtPose(pose:import("./look-at.js").LookAtPose):void;
   applyCustomization(customization:import("./customization.js").CharacterCustomization):Promise<void>;
   setQuality(tier:import("./quality.js").QualityTier):void;
+  setCharacterColors(colors:import("./character.js").CharacterColors):void;
+  setBoneTransform(boneName:string,transform:import("./types.js").Transform):void;
   destroy():void;
 }
 
@@ -99,6 +101,8 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer,opti
           return {...item,...(asset?{assetUri:asset.uri,...(asset.integrity?{integrity:asset.integrity}:{}),...(asset.trustedOrigins?{trustedOrigins:asset.trustedOrigins}:{}),...(asset.limits?{limits:asset.limits}:{})}:{}),...(texture?{textureUri:texture.uri,...(texture.integrity?{integrity:texture.integrity}:{}),...(texture.trustedOrigins?{trustedOrigins:texture.trustedOrigins}:{}),...(texture.limits?{limits:texture.limits}:{})}:{})};
         });await renderer.applyCustomization(scene,{...customization,items:resolvedItems});return;}if(customization.items.some(item=>item.assetId))throw new ToonCoreError("INVALID_LIFECYCLE","An asset resolver is required for Asset ID customization.");await renderer.applyCustomization(scene,customization);},
     setQuality(tier){if(renderer.setQuality)renderer.setQuality(tier);},
+    setCharacterColors(colors){renderer.setCharacterColors?.(scene,colors);},
+    setBoneTransform(boneName,transform){if(!renderer.setBoneTransform)throw new ToonCoreError("INVALID_LIFECYCLE","Renderer does not support bone authoring.");renderer.setBoneTransform(scene,boneName,transform);},
     destroy(){if(status==="disposed")return;loadGeneration++;renderer.dispose(scene);status="disposed";}
   };
 }
