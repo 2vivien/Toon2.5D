@@ -1,5 +1,7 @@
 import * as THREE from "three";
-import type {FaceWeights,Renderer,RendererScene,Transform} from "@toon2.5d/core";
+import {loadGLTF}from"./gltf-loader.js";
+import {applyMorphWeights,collectMorphBindings,type MorphBindingMap}from"./morphs.js";
+import type {FaceWeights,Renderer,RendererScene,Transform}from"@toon2.5d/core";
 
 interface AvatarScene extends RendererScene{
   readonly root:THREE.Group;
@@ -7,6 +9,7 @@ interface AvatarScene extends RendererScene{
   readonly leftEye:THREE.Mesh;
   readonly rightEye:THREE.Mesh;
   readonly mouth:THREE.Mesh;
+  morphBindings:MorphBindingMap;
 }
 
 export interface ThreeRendererOptions{
@@ -43,7 +46,7 @@ export class ThreeRenderer implements Renderer{
     mouth.scale.set(1,.35,.3);
     root.add(head,leftEye,rightEye,mouth);
     this.scene.add(root);
-    const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth};
+    const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth,morphBindings:new Map()};
     this.scenes.set(avatar.id,avatar);
     return avatar;
   }
@@ -56,6 +59,14 @@ export class ThreeRenderer implements Renderer{
     return eye;
   }
 
+  async loadModel(scene:RendererScene,url:string):Promise<void>{
+    const avatar=this.requireScene(scene);
+    const gltf=await loadGLTF(url,{renderer:this.renderer});
+    avatar.root.clear();
+    avatar.root.add(gltf.scene);
+    avatar.morphBindings=collectMorphBindings(gltf.scene);
+  }
+
   setAvatarTransform(scene:RendererScene,transform:Transform):void{
     const avatar=this.requireScene(scene);
     avatar.root.position.set(transform.position.x,transform.position.y,transform.position.z);
@@ -65,36 +76,37 @@ export class ThreeRenderer implements Renderer{
 
   setFaceWeights(scene:RendererScene,weights:FaceWeights):void{
     const avatar=this.requireScene(scene);
+    if(avatar.morphBindings.size>0)applyMorphWeights(avatar.morphBindings,weights);
     const blinkLeft=1-weights.eyeBlinkLeft;
     const blinkRight=1-weights.eyeBlinkRight;
     avatar.leftEye.scale.y=.15+.85*blinkLeft;
     avatar.rightEye.scale.y=.15+.85*blinkRight;
-    avatar.mouth.scale.y=.2+.8*weights.mouthOpen;
-    avatar.mouth.scale.x=.8+.35*weights.mouthSmile;
-    avatar.mouth.position.y=-.28+.08*weights.mouthOpen;
-    avatar.root.rotation.y=(weights.eyeLookHorizontal-.5)*.35;
-    avatar.root.rotation.x=(.5-weights.eyeLookVertical)*.25;
+    avatar.mouth.scale.y=.2+.6*weights.jawOpen;
+    avatar.mouth.scale.x=.8+.35*((weights.mouthSmileLeft+weights.mouthSmileRight)/2);
+    avatar.mouth.position.y=-.28+.08*weights.jawOpen;
+    avatar.root.rotation.y=(weights.eyeLookOutLeft-weights.eyeLookInLeft)*.2;
+    avatar.root.rotation.x=(weights.eyeLookDownLeft-weights.eyeLookUpLeft)*.2;
   }
 
   render(_scene:RendererScene):void{this.renderer.render(this.scene,this.camera);}
+
   resize(width:number,height:number):void{
     const aspect=Math.max(width,1)/Math.max(height,1);
     this.camera.left=-aspect;this.camera.right=aspect;this.camera.top=1;this.camera.bottom=-1;
     this.camera.updateProjectionMatrix();this.renderer.setSize(width,height,false);
   }
+
   dispose(scene:RendererScene):void{
     const avatar=this.requireScene(scene);
     avatar.root.traverse(object=>{
       if(!(object instanceof THREE.Mesh))return;
-      const mesh=object;
-      if(mesh.geometry)mesh.geometry.dispose();
-      if(mesh.material) {
-        const materials=Array.isArray(mesh.material)?mesh.material:[mesh.material];
-        for(const material of materials)material.dispose();
-      }
+      object.geometry.dispose();
+      const materials=Array.isArray(object.material)?object.material:[object.material];
+      for(const material of materials)material.dispose();
     });
     this.scene.remove(avatar.root);this.scenes.delete(avatar.id);
   }
+
   destroy():void{
     for(const scene of this.scenes.values())this.dispose(scene);
     this.renderer.dispose();
