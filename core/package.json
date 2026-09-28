@@ -17,5 +17,14 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/2vivien/Toon2.5D.git",
+    "directory": "core"
+  },
+  "bugs": {
+    "url": "https://github.com/2vivien/Toon2.5D/issues"
+  },
+  "homepage": "https://github.com/2vivien/Toon2.5D#readme"
 }
