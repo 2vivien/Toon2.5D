@@ -12,6 +12,7 @@ interface AvatarScene extends RendererScene{
 export interface ThreeRendererOptions{
   readonly canvas:HTMLCanvasElement;
   readonly background?:number;
+  readonly pixelRatio?:number;
 }
 
 export class ThreeRenderer implements Renderer{
@@ -24,7 +25,7 @@ export class ThreeRenderer implements Renderer{
     this.renderer=new THREE.WebGLRenderer({canvas:options.canvas,antialias:true,alpha:true});
     this.scene.background=options.background===undefined?null:new THREE.Color(options.background);
     this.camera.position.z=5;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    this.renderer.setPixelRatio(Math.min(options.pixelRatio??1.5,2));
   }
 
   createScene():RendererScene{
@@ -84,7 +85,8 @@ export class ThreeRenderer implements Renderer{
   dispose(scene:RendererScene):void{
     const avatar=this.requireScene(scene);
     avatar.root.traverse(object=>{
-      const mesh=object as THREE.Mesh;
+      if(!(object instanceof THREE.Mesh))return;
+      const mesh=object;
       if(mesh.geometry)mesh.geometry.dispose();
       if(mesh.material) {
         const materials=Array.isArray(mesh.material)?mesh.material:[mesh.material];
