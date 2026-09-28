@@ -12,7 +12,7 @@ Toon2.5D is primarily a client-side rendering engine, but its asset pipeline mus
 - Avoid unbounded recursion in asset graphs.
 - Do not trust asset metadata to allocate arbitrary memory.
 
-V0 currently enforces manifest and URL checks. Full binary resource limits and integrity verification are future hardening layers.
+The current runtime enforces manifest and URL checks. Full binary resource limits and integrity verification are future hardening layers.
 
 ## URLs
 
