@@ -5,8 +5,10 @@ export function validateManifest(manifest:AssetManifest):AssetManifest{
   if(!manifest.id||!manifest.version||!manifest.uri)throw new Error("Asset identity is incomplete.");
   const isModel=manifest.mime==="model/gltf-binary";
   if(!isModel&&!manifest.mime.startsWith("image/"))throw new Error("Unsupported asset MIME type.");
-  const protocol=new URL(manifest.uri).protocol;
-  if(protocol!=="https:"&&protocol!=="http:")throw new Error("Unsupported asset URL scheme.");
+  const parsedUri=new URL(manifest.uri);
+  const dev=(globalThis as {process?:{env?:Record<string,string|undefined>}}).process?.env?.NODE_ENV==="development";
+  const localhost=parsedUri.hostname==="localhost"||parsedUri.hostname==="127.0.0.1"||parsedUri.hostname==="::1";
+  if(parsedUri.protocol!=="https:"&&!(dev&&parsedUri.protocol==="http:"&&localhost))throw new Error("Remote assets must use HTTPS.");
   if(isModel&&!manifest.expressionProfile?.id)throw new Error("Expression profile is required for model assets.");
   if(manifest.expressionProfile?.morphBindings.some(binding=>binding.targets.length===0)){
     throw new Error("Every morph binding needs at least one target alias.");
