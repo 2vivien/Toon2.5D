@@ -1,6 +1,6 @@
 import {clamp01}from"../math.js";
-import {createNeutralFace}from"../face-defaults.js";
-import type {FaceWeights}from"../types.js";
+import {FACE_PARAMETERS}from"../face-defaults.js";
+import type {MutableFaceWeights,FaceWeights}from"../types.js";
 import type {ExpressionContribution}from"./types.js";
 
 function applyValue(current:number,next:number,mode:ExpressionContribution["mode"],weight:number):number{
@@ -12,13 +12,12 @@ function applyValue(current:number,next:number,mode:ExpressionContribution["mode
   return Math.min(current,value);
 }
 
-export function compose(contributions:ExpressionContribution[]):FaceWeights{
-  const values=createNeutralFace();
+export function composeInto(contributions:ExpressionContribution[],output:MutableFaceWeights):FaceWeights{
+  for(const parameter of FACE_PARAMETERS)output[parameter]=0;
   contributions.sort((a,b)=>a.priority-b.priority);
   for(const contribution of contributions){
-    values[contribution.parameter]=applyValue(
-      values[contribution.parameter],contribution.value,contribution.mode,contribution.weight
-    );
+    const parameter=contribution.parameter;
+    output[parameter]=applyValue(output[parameter],contribution.value,contribution.mode,contribution.weight);
   }
-  return values;
+  return output;
 }
