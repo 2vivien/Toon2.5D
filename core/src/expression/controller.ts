@@ -44,10 +44,10 @@ export function createExpressionController():ExpressionController{
       frame.elapsedSeconds=context.elapsedSeconds;
       frame.lookTarget=target;
       contributions.length=0;
+      for(const contribution of look.evaluate(frame))contributions.push(contribution);
       for(const contribution of emotion.evaluate(frame))contributions.push(contribution);
       for(const contribution of lip.evaluate(frame))contributions.push(contribution);
       for(const contribution of blink.evaluate(frame))contributions.push(contribution);
-      for(const contribution of look.evaluate(frame))contributions.push(contribution);
       for(const source of custom.values())for(const contribution of source.evaluate(frame))contributions.push(contribution);
       for(const parameter of Object.keys(external)as Array<keyof FaceWeights>){
         const value=external[parameter];
