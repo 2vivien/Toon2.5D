@@ -16,4 +16,7 @@ export interface Renderer{
   setLookAtPose?(scene:RendererScene,pose:import("./look-at.js").LookAtPose):void;
   applyCustomization?(scene:RendererScene,customization:CharacterCustomization):Promise<void>|void;
   setQuality?(tier:QualityTier):void;
+  setCharacterColors?(scene:RendererScene,colors:import("./character.js").CharacterColors):void;
+  getBoneNames?(scene:RendererScene):readonly string[];
+  setBoneTransform?(scene:RendererScene,boneName:string,transform:Transform):void;
 }
