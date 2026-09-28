@@ -1,14 +1,14 @@
 # Toon2.5D — Technical Blueprint V0.1
 
-Status: proposed
+Status: living blueprint
 Target: engine-first, head-first, production-grade foundation
-Implementation rule: blueprint before feature code
+Implementation rule: the blueprint defines the intended architecture, while every implemented capability must be verified against the code and tests.
 
 ## 1. Non-negotiable goals
 
 Toon2.5D is a real-time 3D avatar runtime with a controlled 2.5D visual language.
 
-V0.1 must provide:
+V0.1 architecture requires:
 
 - deterministic runtime lifecycle;
 - framework-independent core;
@@ -21,27 +21,28 @@ V0.1 must provide:
 - measurable performance budgets;
 - a small public API.
 
-The facial system is a first-class subsystem, not a collection of UI sliders.
+A requirement in this blueprint is not considered implemented until executable code and tests provide evidence.
 
 ## 2. Product boundaries
 
 ENGINE
-- character state;
-- scene graph;
-- expressions;
-- animation;
-- look-at;
-- constraints;
-- runtime lifecycle.
+- avatar definition contracts;
+- expression system;
+- runtime lifecycle;
+- renderer contract;
+- semantic facial state.
+
+ANIMATION
+- deterministic keyframe playback;
+- interpolation;
+- conversion to core expression sources.
 
 ASSETS
 - manifests;
 - GLB/glTF;
 - validation;
-- compression variants;
-- cache;
-- ownership;
-- asset packs.
+- compression support;
+- registry/resolution.
 
 STUDIO
 - future editor;
@@ -55,47 +56,24 @@ The Studio must never invent a parallel avatar runtime.
 ## 3. Package graph
 
 ```
-core/
-  ├── @toon2.5d/core
-  ├── domain types
-  ├── scene graph contracts
-  ├── expression contracts
-  ├── runtime lifecycle
-  └── renderer contract
-
-assets/
-  ├── @toon2.5d/assets
-  ├── manifests
-  ├── validation
-  ├── resolution
-  └── cache contracts
-
-animation/
-  ├── @toon2.5d/animation
-  ├── timeline
-  ├── interpolation
-  ├── state machine
-  └── blending
-
-renderer-three/
-  └── @toon2.5d/renderer-three
-
-react/
-  └── @toon2.5d/react
+core
+  ^
+  |
+  +-- assets
+  +-- animation
+  +-- renderer-three
+          ^
+          |
+          +-- react
 ```
 
-Dependency rule:
+Core never imports React, DOM, Three.js or the animation package.
 
-core <- assets
-core <- animation
-core <- renderer-three
-core + renderer-three <- react
+The animation package depends on core because it produces the core ExpressionSource contract. Runtime applications attach animation sources explicitly.
 
-Core never imports React, DOM, Three.js or browser globals.
+## 4. Current runtime phases
 
-## 4. Runtime phases
-
-Every frame follows a fixed pipeline:
+The host scheduler drives each frame:
 
 ```
 Input Collection
@@ -104,18 +82,16 @@ Source Evaluation
       ↓
 Expression Composition
       ↓
-Morph/Material Targets
+Facial Constraints
       ↓
-Constraints
+Semantic Face Weights
       ↓
-Pose / Secondary Motion
-      ↓
-Scene Synchronization
+Renderer Application
       ↓
 Render
 ```
 
-No subsystem may silently reorder another subsystem.
+The core runtime exposes deterministic `update(deltaSeconds)` and `render()`; it does not own requestAnimationFrame.
 
 ## 5. Facial pipeline
 
@@ -126,91 +102,58 @@ Expression Sources
  ├── LookAt
  ├── LipSync
  ├── Animation
- └── External Input
+ └── External Override
           ↓
    Expression Controller
           ↓
-   Semantic Parameters
-          ↓
       Composer
-          ↓
-    Morph Weights
           ↓
       Constraints
           ↓
-       Rendering
+   Semantic Face Weights
+          ↓
+       Renderer
 ```
 
-The controller is not allowed to write directly to Three.js morphTargetInfluences.
+The controller never writes directly to Three.js morphTargetInfluences.
 
 It produces renderer-independent semantic output.
 
 ## 6. Canonical semantic face parameters
 
-V0.1 uses normalized values in [0, 1] unless a contract explicitly states another range.
+V0.1 defines exactly 52 normalized facial parameters.
 
-Core parameters:
+The TypeScript `FaceParameter` union and automated face-contract tests are the authoritative contract. The vocabulary follows the ARKit-compatible semantic naming convention without requiring ARKit at runtime.
 
-- mouthSmile
-- mouthOpen
-- mouthFrown
-- mouthPucker
-- mouthStretch
-- jawOpen
-- eyeBlinkLeft
-- eyeBlinkRight
-- eyeSquintLeft
-- eyeSquintRight
-- browRaiseLeft
-- browRaiseRight
-- browFurrowLeft
-- browFurrowRight
-- cheekRaiseLeft
-- cheekRaiseRight
-- cheekPuff
-- noseWrinkle
-- eyeLookHorizontal
-- eyeLookVertical
-
-The asset layer maps semantic parameters to actual morph targets, bones or material controls.
+The asset layer maps these semantic parameters to actual morph targets through versioned bindings.
 
 ## 7. Emotion model
 
 Emotion is intent, not geometry.
 
-An emotion preset contains:
+Current V0 supports:
 
-- semantic parameter targets;
-- optional intensity;
-- attack duration;
-- release duration;
-- priority;
-- optional channel overrides.
+- eight named emotions;
+- normalized intensity;
+- deterministic transition smoothing;
+- semantic parameter presets.
 
-Example:
+Current emotion presets do not expose configurable per-emotion attack/release durations or channel override policies.
 
-```
-happy
-  mouthSmile: 0.82
-  cheekRaise: 0.55
-  eyeSquint: 0.18
-```
-
-Emotion presets are composable. A later emotion must not erase independent systems such as blinking or lip sync unless an explicit override policy says so.
+Emotion contributions are additive and are composed with independent blink, lip-sync, look-at and custom sources.
 
 ## 8. Source layers
 
-Sources are evaluated independently.
+Current evaluation order:
 
-Recommended logical layers:
-
-1. Base
-2. Emotion
-3. Animation
-4. LipSync
-5. Blink
-6. LookAt
-7. External override
+1. Emotion
+2. LipSync
+3. Blink
+4. LookAt
+5. Animation/custom sources
+6. External overrides
+7. Composition
+8. Constraints
 
 Each contribution has:
 
@@ -219,128 +162,108 @@ Each contribution has:
 - value;
 - weight;
 - priority;
-- blend mode;
-- optional mask.
+- blend mode.
 
-No implicit last-write-wins.
+Supported blend modes are ADD, OVERRIDE, MULTIPLY, MAX and MIN.
+
+No implicit last-write-wins rule is used.
 
 ## 9. Composition rules
 
-Default blend modes:
+All semantic values are clamped to [0, 1].
 
-ADD
-- adds a bounded contribution.
+The compositor is deterministic: identical inputs and time produce identical logical output.
 
-OVERRIDE
-- replaces lower-priority contributions.
-
-MULTIPLY
-- scales an existing contribution.
-
-MAX
-- keeps the strongest contribution.
-
-MIN
-- keeps the smallest contribution.
-
-All final values are clamped to the parameter contract.
-
-The compositor is deterministic: identical inputs and time must produce identical output.
+Priority is explicit. External face overrides use the highest current priority so an application can intentionally control selected parameters without mutating renderer state.
 
 ## 10. Override policy
 
 Overrides are explicit and scoped.
 
-Examples:
+Current V0 guarantees:
 
-- strong blink may temporarily suppress eye-squint;
-- mouth override may suppress lip-sync;
-- look-at must not overwrite mouth parameters;
-- emotion must not directly own eye rotation when the look-at controller owns gaze;
-- external input may override a named parameter only when requested.
+- look-at only contributes eye-gaze parameters;
+- external overrides are represented as expression contributions;
+- facial constraints run after composition;
+- direct face overrides survive subsequent runtime update calls.
 
-No global emergency override exists.
+More specialized channel override policies remain future work.
 
 ## 11. Look-at
 
-Look-at has two possible outputs:
+Current V0 uses semantic eye-gaze parameters with:
 
-- eye bone rotation;
-- semantic expression values.
+- horizontal and vertical limits;
+- smoothing;
+- deterministic evaluation.
 
-The target is transformed into avatar-local space.
+The current Three.js renderer also applies a limited root-rotation approximation.
 
-Horizontal and vertical values are clamped by avatar profile limits.
-
-The system must support dead zones and smoothing.
-
-Look-at does not directly mutate render objects.
+Future work includes dedicated eye/head bones, avatar-local target transforms, dead zones and a full humanoid look-at solver.
 
 ## 12. Blink
 
-Blink is an independent source.
+Blink is an independent deterministic source.
 
-It supports:
+Current V0 supports:
 
 - automatic blink;
-- manual blink;
-- asymmetric blink;
-- blink duration;
-- closing/opening curves;
-- interruption policy.
+- seeded pseudo-random intervals;
+- configurable close, hold and open durations;
+- deterministic testable timing.
 
-Blink timing must use injected time so tests remain deterministic.
-
-A blink controller owns eye closure only. It does not own the entire expression state.
+Manual blink, asymmetric blink and advanced interruption policies remain future work.
 
 ## 13. Lip sync
 
-Lip sync is an adapter from audio/phoneme input to semantic mouth parameters.
+Lip sync is an adapter from viseme state to semantic mouth parameters.
 
-V0.1 must support a provider contract, not a single audio algorithm.
+V0 supports:
 
-Possible future providers:
+- silence;
+- AA;
+- EE;
+- IH;
+- OH;
+- OU.
 
-- phoneme events;
-- visemes;
-- amplitude;
-- external speech engines.
+The source can coexist with emotion because both produce independent semantic contributions.
 
-Lip sync must be able to coexist with emotion.
-
-Example:
-happy + vowel "A" produces a smile plus mouthOpen rather than replacing the smile.
+External audio/phoneme provider adapters remain future work.
 
 ## 14. Constraints
 
-Constraints run after expression application.
+Constraints run after expression composition and before renderer application.
 
-Examples:
+Current constraints include:
 
-- mouthOpen limits mouthSmile;
-- eyeBlink limits eyeSquint;
-- jawOpen limits incompatible mouth shapes;
-- symmetric mode can mirror selected parameters;
-- asset-defined maximum deformation prevents invalid face shapes.
+- mouth smile reduction from jaw opening;
+- smile/frown conflict handling;
+- mouth-close reduction from jaw opening;
+- eye squint/wide interaction with blink;
+- normalized tongue bounds.
 
-Constraints are pure functions where possible.
+Future asset-defined deformation limits and symmetric modes remain planned.
 
 ## 15. Renderer contract
 
-Core renderer contract exposes only operations required by the runtime:
+The core renderer contract currently exposes:
 
 - create scene;
-- attach node;
-- update transform;
-- update semantic face target;
-- update material state;
+- load asset;
+- set avatar transform;
+- set semantic face weights;
 - render;
 - resize;
 - dispose.
 
 Three.js types remain inside renderer-three.
 
-## 16. Scene graph
+Node attachment, material-state updates and a richer scene graph API are future capabilities.
+
+## 16. Scene representation
+
+The conceptual avatar structure is:
 
 ```
 AvatarRoot
@@ -355,7 +278,7 @@ AvatarRoot
      └── Accessories
 ```
 
-Semantic anchors are stable asset contracts.
+The current core does not expose this as a Three.js scene graph. Renderer-three owns the concrete render scene.
 
 ## 17. Asset pipeline
 
@@ -364,58 +287,47 @@ Blender
  ↓
 Modeling
  ↓
-Retopology
- ↓
-UV
- ↓
-Materials
+Retopology / UV / Materials
  ↓
 Bones / Morphs
  ↓
 GLB
  ↓
 Validation
- ├── Geometry
- ├── Textures
- └── Animation
  ↓
 Optimization
- ├── Meshopt / Draco
- ├── KTX2 / BasisU
- └── animation optimization
  ↓
-Asset Pack
+Manifest
  ↓
-CDN
+CDN or application bundle
 ```
 
-The runtime never receives an unvalidated production asset.
+The reference pipeline deterministically generates and validates the 52-morph reference head.
 
 ## 18. Asset manifest
 
-Every production asset declares:
+Current production manifest fields are:
 
-- id;
 - schemaVersion;
-- assetVersion;
-- url or resolver key;
-- required anchors;
-- morph names;
-- material slots;
-- compression capabilities;
-- compatibility;
-- license metadata;
-- integrity metadata where distribution requires it.
+- id;
+- version;
+- URI;
+- GLB MIME type;
+- optional integrity metadata;
+- expression profile;
+- semantic morph bindings;
+- anchors.
+
+Binary inspection, engine compatibility, resource limits, licensing metadata and complete integrity verification remain future validation layers.
 
 ## 19. Resource ownership
 
-Resources are classified:
+Resources are classified conceptually as:
 
 SHARED
 - immutable geometry;
 - textures;
-- decoded asset data;
-- material templates where safe.
+- decoded asset data.
 
 INSTANCE
 - transforms;
@@ -423,26 +335,27 @@ INSTANCE
 - animation state;
 - controller state.
 
-The instance must never dispose a resource owned by the shared registry.
+Renderer disposal is explicit. Rejected or replaced GLB scenes are disposed before being discarded.
 
 ## 20. Security rules
 
-- validate every external asset reference;
-- allow only configured protocols;
-- reject unexpected MIME/content types;
+- validate external asset references;
+- allow only HTTP(S) asset URLs in V0;
 - never execute asset-provided code;
 - never evaluate arbitrary expressions as code;
-- bound asset dimensions and payload sizes;
+- bound asset dimensions and payload sizes at host/pipeline boundaries;
 - protect caches against unbounded growth;
 - isolate renderer failures from application state;
 - never log secrets or signed URLs;
-- keep network access outside core.
+- keep telemetry/network policy outside core.
+
+Some resource limits and full binary integrity checks are future hardening layers.
 
 ## 21. Performance budgets
 
 Initial targets are budgets, not promises:
 
-- no per-frame object allocation in hot paths;
+- minimal frame-loop allocations;
 - no React state update per frame;
 - no asset parsing inside render;
 - no DOM query inside frame loop;
@@ -450,7 +363,9 @@ Initial targets are budgets, not promises:
 - target 60 FPS for the reference head on a representative desktop;
 - track load time, decoded asset size, JS heap and GPU resources.
 
-Every optimization must have a benchmark.
+Current V0 already reuses core expression buffers and animation output buffers.
+
+Every optimization must have benchmark or profiling evidence.
 
 ## 22. Testing layers
 
@@ -459,32 +374,27 @@ UNIT
 - interpolation;
 - composition;
 - constraints;
-- state machines;
+- facial sources;
 - schema validation.
 
 INTEGRATION
 - asset loading;
 - runtime lifecycle;
-- renderer synchronization;
+- runtime animation attachment;
+- resize;
+- explicit overrides;
 - disposal.
 
-VISUAL
-- neutral;
-- happy;
-- sad;
-- angry;
-- surprised;
-- blink;
-- look left/right/up/down;
-- mouth shapes;
-- mixed emotion + lip sync;
-- mixed emotion + blink.
+ASSET
+- deterministic reference GLB generation;
+- 52-morph validation.
+
+VISUAL / BROWSER
+- planned for neutral, emotions, blink, look-at, mouth shapes and mixed sources.
 
 PERFORMANCE
-- one avatar;
-- many avatars sharing assets;
-- cold load;
-- warm cache.
+- benchmark scaffold exists;
+- browser/GPU regression gates remain required before stable release.
 
 ## 23. Code-size policy
 
@@ -494,35 +404,37 @@ Production source rules:
 - maximum 50 lines per React component;
 - maximum 50 lines per public method;
 - one responsibility per module;
-- no god classes;
 - no circular dependency;
 - no `any`;
 - no `unknown`;
 - no implicit `any`;
-- no unchecked type assertions;
 - strict TypeScript;
 - explicit return types on public APIs;
-- exhaustive discriminated unions;
-- errors represented by typed error classes/results;
 - no hidden mutable singleton state.
 
 If a file exceeds the limit, split by responsibility rather than compressing formatting.
 
 ## 24. API design
 
-Public API should expose intent:
+Current public runtime API exposes intent without exposing renderer internals:
 
 ```
-avatar.expression.set("happy")
-avatar.expression.setIntensity(0.8)
-avatar.lookAt.setTarget(target)
-avatar.animation.play("idle")
-avatar.update(delta)
-avatar.render()
-avatar.destroy()
+runtime.load(asset)
+runtime.update(delta)
+runtime.render()
+runtime.resize(width, height)
+runtime.expression.setEmotion(...)
+runtime.expression.setLipSync(...)
+runtime.setLookAt(...)
+runtime.setFaceWeights(...)
+runtime.pause()
+runtime.resume()
+runtime.destroy()
 ```
 
-The application should never need to know how morph targets, bones or Three.js objects are implemented.
+Animation attaches through `attachAnimation(runtime, player)`.
+
+Richer character, animation-controller, event and React prop facades are future API layers.
 
 ## 25. Definition of done for V0.1
 
@@ -534,9 +446,12 @@ V0.1 is complete only when:
 - reference head asset validates;
 - expression pipeline is deterministic;
 - emotion, blink, look-at and lip-sync sources compose;
+- animation can attach to the runtime through the package adapter;
 - constraints execute after composition;
 - renderer receives semantic output only;
 - disposal tests pass;
 - browser smoke test passes;
 - reference benchmark is recorded;
 - documentation matches implementation.
+
+Until the browser and performance gates are satisfied, the release remains pre-stable.
