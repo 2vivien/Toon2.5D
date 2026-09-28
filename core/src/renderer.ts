@@ -9,6 +9,7 @@ export interface Renderer{
   setAvatarTransform(scene:RendererScene,transform:Transform):void;
   setFaceWeights(scene:RendererScene,weights:FaceWeights):void;
   render(scene:RendererScene):void;
+  update?(deltaSeconds:number):void;
   resize(width:number,height:number):void;
   dispose(scene:RendererScene):void;
   setPerspectiveCamera?(scene:RendererScene,camera:PerspectiveCameraState):void;
