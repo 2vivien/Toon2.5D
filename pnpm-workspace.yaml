@@ -6,3 +6,6 @@ packages:
   - "react"
   - "examples/*"
   - "studio"
+
+onlyBuiltDependencies:
+  - esbuild
