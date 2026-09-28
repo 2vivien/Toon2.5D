@@ -56,10 +56,10 @@ These must not be presented as current V0 capabilities.
 
 Expression sources are evaluated deterministically:
 
-1. emotion;
-2. lip-sync;
-3. blink;
-4. look-at;
+1. look-at;
+2. emotion;
+3. lip-sync;
+4. blink;
 5. animation/custom sources;
 6. external face overrides;
 7. composition;
