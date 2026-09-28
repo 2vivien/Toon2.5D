@@ -26,8 +26,8 @@ describe("renderer morph bindings",()=>{
     face.mouthSmileLeft=.75;
     face.mouthSmileRight=.5;
     applyMorphWeights(bindings,face);
-    expect(mesh.morphTargetInfluences?.[0]).toBe(.6);
-    expect(mesh.morphTargetInfluences?.[1]).toBe(.5);
+    expect(mesh.morphTargetInfluences?.[0]).toBeCloseTo(.6,10);
+    expect(mesh.morphTargetInfluences?.[1]).toBeCloseTo(.5,10);
     geometry.dispose();
     mesh.material.dispose();
   });
