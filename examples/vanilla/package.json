@@ -1,0 +1,6 @@
+{
+  "name":"@toon2.5d/example-vanilla",
+  "private":true,
+  "type":"module",
+  "dependencies":{"@toon2.5d/core":"workspace:*","@toon2.5d/renderer-three":"workspace:*"}
+}
