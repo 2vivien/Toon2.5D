@@ -40,7 +40,7 @@ The reference asset generator and validator enforce the current facial asset con
 
 ## Performance
 
-The benchmark suite covers deterministic expression work. Browser/GPU regression benchmarks for one avatar, repeated avatars and many shared avatars remain required before stable release.
+The benchmark suite covers deterministic expression work. Browser regression coverage now runs the real Studio bundle in headless Chromium, verifies canvas output, frame-time budget, and repeated-mount observable heap growth. The CI browser gate is a release check.
 
 Record:
 

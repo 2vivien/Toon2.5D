@@ -83,4 +83,4 @@ Track:
 
 ## Performance gates
 
-Performance regression thresholds are a release requirement but are not yet enforced as CI failure gates for browser/GPU measurements.
+Performance regression gates are enforced in CI through the browser Studio fixture: a real canvas render, a frame-time p95 budget, and repeated-mount observable heap-growth bound. GPU-specific hardware variance remains outside deterministic CI claims.

@@ -51,9 +51,13 @@ Depth comes from actual 3D geometry and hierarchy. Do not simulate all depth wit
 V0:
 - WebGL through Three.js.
 
+Implemented:
+- perspective camera path with dynamic projection updates;
+- shared renderer frame coordination;
+- adaptive renderer pixel-ratio quality tiers.
+
 Future:
 - WebGPU adapter;
-- shared renderer for many avatars;
 - instancing where asset topology permits.
 
 ## Resize

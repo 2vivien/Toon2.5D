@@ -1,0 +1,4 @@
+export type QualityTier="low"|"medium"|"high"|"ultra";
+export interface QualityState{readonly tier:QualityTier;readonly visible:boolean;readonly fps:number}
+const rank:Record<QualityTier,number>={low:0,medium:1,high:2,ultra:3};
+export class DynamicQualityController{private visible=true;private fps=60;private tier:QualityTier="high";setVisible(visible:boolean):void{this.visible=visible;this.recalculate()}sampleFrame(seconds:number):void{if(!Number.isFinite(seconds)||seconds<=0)return;const instant=1/seconds;this.fps=this.fps*.9+instant*.1;this.recalculate()}get state():QualityState{return{tier:this.tier,visible:this.visible,fps:this.fps}}private recalculate():void{const target:QualityTier=!this.visible?"low":this.fps<24?"low":this.fps<40?"medium":this.fps<55?"high":"ultra";if(rank[target]!==rank[this.tier])this.tier=target;}}

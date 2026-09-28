@@ -5,3 +5,7 @@ packages:
   - "renderer-three"
   - "react"
   - "examples/*"
+  - "studio"
+
+onlyBuiltDependencies:
+  - esbuild

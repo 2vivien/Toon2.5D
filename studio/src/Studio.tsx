@@ -1,0 +1,13 @@
+import {useEffect,useRef,useState}from"react";
+import {createAnimationPlayer,attachAnimation}from"@toon2.5d/animation";
+import {createRuntime}from"@toon2.5d/core";
+import {ThreeRenderer}from"@toon2.5d/renderer-three";
+import type {AvatarDefinition}from"@toon2.5d/core";
+export interface StudioProps{readonly character:AvatarDefinition;readonly width?:number;readonly height?:number}
+export function Studio({character,width=640,height=640}:StudioProps){
+ const canvasRef=useRef<HTMLCanvasElement|null>(null);const runtimeRef=useRef<ReturnType<typeof createRuntime>|null>(null);const [smile,setSmile]=useState(0);const [blink,setBlink]=useState(0);const [playing,setPlaying]=useState(false);
+ useEffect(()=>{const canvas=canvasRef.current;if(!canvas)return;const renderer=new ThreeRenderer({canvas,pixelRatio:1.5});const runtime=createRuntime(character,renderer);runtimeRef.current=runtime;renderer.resize(width,height);let frame=0;let previous=performance.now();const tick=(now:number)=>{const delta=Math.min((now-previous)/1000,.1);previous=now;runtime.update(delta);runtime.render();frame=requestAnimationFrame(tick)};frame=requestAnimationFrame(tick);return()=>{cancelAnimationFrame(frame);runtime.destroy();renderer.destroy();runtimeRef.current=null}},[character,width,height]);
+ useEffect(()=>{runtimeRef.current?.setFaceWeights({mouthSmileLeft:smile,mouthSmileRight:smile,eyeBlinkLeft:blink,eyeBlinkRight:blink})},[smile,blink]);
+ useEffect(()=>{const runtime=runtimeRef.current;if(!runtime||!playing)return;const player=createAnimationPlayer();player.play({id:"studio-preview",duration:1,tracks:[{parameter:"mouthSmileLeft",easing:"smoothstep",keys:[{time:0,value:0},{time:1,value:1}]},{parameter:"mouthSmileRight",easing:"smoothstep",keys:[{time:0,value:0},{time:1,value:1}]}]},true);const attachment=attachAnimation(runtime,player);return()=>{attachment.detach();player.stop()}},[playing]);
+ return <section aria-label="Toon2.5D Studio"><div><label>Smile <input type="range" min="0" max="1" step=".01" value={smile} onChange={event=>setSmile(Number(event.target.value))}/></label><label>Blink <input type="range" min="0" max="1" step=".01" value={blink} onChange={event=>setBlink(Number(event.target.value))}/></label><button type="button" onClick={()=>setPlaying(value=>!value)}>{playing?"Stop":"Play preview"}</button></div><canvas ref={canvasRef} width={width} height={height}/></section>
+}
