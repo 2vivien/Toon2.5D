@@ -15,5 +15,5 @@ export function createMultiClipPlayer():MultiClipPlayer{const values=createNeutr
 
 export function multiClipSource(player:MultiClipPlayer):import("@toon2.5d/core").ExpressionSource{
  const contributions:import("@toon2.5d/core").ExpressionContribution[]=[];
- return{id:"animation",evaluate(){contributions.length=0;const values=player.output();for(const parameter of Object.keys(values)as FaceParameter){const value=values[parameter];if(value>0)contributions.push({source:"animation",parameter,value,weight:1,priority:30,mode:"add"})}return contributions}}
+ return{id:"animation",evaluate(context){player.update(context.deltaSeconds);contributions.length=0;const values=player.output();for(const parameter of Object.keys(values)as FaceParameter){const value=values[parameter];if(value>0)contributions.push({source:"animation",parameter,value,weight:1,priority:30,mode:"add"})}return contributions}}
 }
