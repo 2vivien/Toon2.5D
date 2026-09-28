@@ -111,7 +111,9 @@ export class ThreeRenderer implements Renderer{
 
   update(deltaSeconds:number):void{if(!Number.isFinite(deltaSeconds)||deltaSeconds<0)return;for(const avatar of this.scenes.values())avatar.mixer?.update(deltaSeconds)}
 
-  getAnimationMixer(scene:RendererScene):THREE.AnimationMixer|undefined{return this.requireScene(scene).mixer}
+  getAnimationMixer(scene:RendererScene):THREE.AnimationMixer|undefined{return this.requireScene(scene).mixer}\n  getAnimationNames(scene:RendererScene):readonly string[]{return this.requireScene(scene).animations.map(clip=>clip.name).filter(Boolean)}
+  getBoneNames(scene:RendererScene):readonly string[]{const names:string[]=[];this.requireScene(scene).loadedRoot?.traverse(object=>{if(object instanceof THREE.Bone)names.push(object.name)});return names}
+
 
   playAnimation(scene:RendererScene,name:string,options:{readonly loop?:THREE.AnimationActionLoopStyles;readonly repetitions?:number}={}):THREE.AnimationAction{
     const avatar=this.requireScene(scene);if(!avatar.mixer||!avatar.loadedRoot)throw new Error("Scene has no native animation mixer.");const clip=THREE.AnimationClip.findByName(avatar.animations,name);if(!clip)throw new Error("Animation clip not found: "+name);const action=avatar.mixer.clipAction(clip);if(options.loop!==undefined)action.setLoop(options.loop,options.repetitions??Infinity);action.play();return action;
