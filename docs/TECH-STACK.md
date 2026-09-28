@@ -61,4 +61,4 @@ The repository currently does not include Playwright, ESLint, Prettier or Change
 
 ## Future options
 
-WebGPU, worker rendering, React Native, native mobile renderers, browser visual testing and server-side asset preprocessing are future adapters or tooling layers, not V0 requirements.
+Worker rendering, React Native and native mobile renderers remain additive adapters outside the V1 web runtime. WebGPU is implemented as a renderer adapter.
