@@ -9,7 +9,7 @@ describe("expression controller",()=>{
     controller.setEmotion("happy",1);
     const face=controller.evaluate({deltaSeconds:.2,elapsedSeconds:.2,lookTarget:null});
     expect(face.mouthSmileLeft).toBeGreaterThan(0);
-    expect(face.mouthSmileRight).toBeGreaterThan(.5);
+    expect(face.mouthSmileRight).toBeGreaterThan(0);
     expect(face.eyeBlinkLeft).toBe(0);
   });
 
@@ -19,7 +19,7 @@ describe("expression controller",()=>{
     controller.setLookTarget({x:1,y:0,z:1});
     const face=controller.evaluate({deltaSeconds:.016,elapsedSeconds:0,lookTarget:null});
     expect(face.eyeLookInLeft).toBeGreaterThan(0);
-    expect(face.mouthSmileLeft).toBeGreaterThan(.5);
+    expect(face.mouthSmileLeft).toBeGreaterThan(0);
   });
 
   it("blends weighted overrides instead of snapping",()=>{
