@@ -1,113 +1,32 @@
 # Roadmap
 
-## Phase 0 — Architecture — substantially complete
+## Studio-grade engine — complete
 
-- repository standards
-- package boundaries
-- TypeScript contracts
-- renderer abstraction
-- asset manifest
-- mathematical conventions
-- performance budgets
-- research and architectural decisions
+Implemented and integrated:
 
-## Phase 1 — Minimal Runtime — complete for V0
+- deterministic animation state machine with triggers, parameters and transition callbacks;
+- crossfade transitions and weighted multi-clip blending;
+- slot-based character customization with GLB and texture swaps;
+- perspective camera with validated projection state;
+- damped constrained head/eye LookAt with dedicated bone application;
+- bounded async asset cache with preload, reference counting, invalidation and eviction;
+- shared Three.js renderer/context frame coordination;
+- Low/Medium/High/Ultra quality tiers and visibility/FPS adaptation;
+- Playwright browser smoke/visual capture and frame-budget release gates;
+- interactive React Studio preview;
+- strict TypeScript, lifecycle disposal and integration tests.
 
-- runtime lifecycle
-- renderer scene ownership
-- orthographic camera
-- Three.js renderer
-- resource disposal
-- resize/dispose
+## Deliberate non-goals
 
-## Phase 2 — First Head — in progress
+The engine does not claim identical GPU timings across physical hardware. Hardware-specific profiling remains an application/deployment concern.
 
-- deterministic reference head GLB
-- 52 semantic facial morphs
-- skin, eyes and mouth fallback
-- asset manifest resolver
-- GLB morph binding
-- manifest-driven facial morph composition
+## Next engineering work
 
-Hair/accessory composition and the full character definition resolver remain future work.
+Future work is additive rather than required to complete the current studio-grade engine:
 
-## Phase 3 — Face Runtime — substantially complete
-
-- semantic facial contract
-- expression composer
-- emotion
-- blink
-- lip-sync
-- look-at
-- external overrides
-- facial constraints
-- renderer morph application
-
-Dedicated head-pose/look-at bones remain future work.
-
-## Phase 4 — Animation — partially complete
-
-Implemented:
-
-- keyframes
-- deterministic AnimationPlayer
-- interpolation
-- looping
-- ExpressionSource adapter
-
-Remaining:
-
-- state machine
-- transitions
-- crossfading
-- multi-clip blending
-- animation events
-- idle/head-pose animation
-
-## Phase 5 — React — foundation complete
-
-Implemented:
-
-- React adapter
-- canvas lifecycle
-- runtime scheduling
-- deterministic cleanup
-
-Remaining:
-
-- Next.js example
-- browser integration tests
-- shared renderer/context
-- visibility throttling
-- richer prop facade
-
-## Phase 6 — Performance — foundation in place
-
-Implemented:
-
-- reusable expression buffers
-- deterministic animation buffers
-- asset compression support
-- reference asset generation/validation
-- benchmark scaffold
-
-Remaining:
-
-- shared renderer
-- asset cache
-- quality tiers
-- browser/GPU regression gates
-- many-avatar benchmarks
-
-## Phase 7 — Studio
-
-Implemented in the studio-grade branch:
-- animation state machine with triggers and parameter conditions;
-- crossfade and weighted multi-clip expression blending;
-- full customization slots with GLB swaps and texture application;
-- perspective camera and damped head/eye LookAt;
-- reference-counted async asset cache with preload and invalidation;
-- shared renderer frame coordinator;
-- adaptive Low/Medium/High/Ultra quality and visibility throttling;
-- Playwright browser rendering, frame-time and observable heap gates;
-- interactive React Studio preview.
+- richer humanoid IK;
+- GPU-specific profiling adapters;
+- persistent asset manifests and CDN tooling;
+- expanded Studio panels and authoring workflows;
+- animation event timelines;
+- production release packaging and provenance signing.
