@@ -51,7 +51,8 @@ The source contract is framework-agnostic and renderer-independent.
 
 ```ts
 const player = createAnimationPlayer();
-avatar.expression.addSource(animationSource(player));
+const attachment = attachAnimation(avatar, player);
+attachment.detach();
 ```
 
 The current player supports deterministic single-clip playback. State machines, crossfading and multi-clip blending are not yet part of V0.
