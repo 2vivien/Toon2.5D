@@ -95,6 +95,11 @@ export class ThreeRenderer implements Renderer{
     });
     this.scene.remove(avatar.root);this.scenes.delete(avatar.id);
   }
+  destroy():void{
+    for(const scene of this.scenes.values())this.dispose(scene);
+    this.renderer.dispose();
+  }
+
   private requireScene(scene:RendererScene):AvatarScene{
     const avatar=this.scenes.get(scene.id);
     if(!avatar)throw new Error("Renderer scene is not owned by this renderer.");
