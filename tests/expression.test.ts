@@ -5,7 +5,7 @@ describe("expression controller",()=>{
   it("composes emotion and blink",()=>{
     const controller=createExpressionController();
     controller.setEmotion("happy",1);
-    const face=controller.evaluate({deltaSeconds:0,elapsedSeconds:0,lookTarget:null});
+    const face=controller.evaluate({deltaSeconds:.2,elapsedSeconds:.2,lookTarget:null});
     expect(face.mouthSmileLeftLeft).toBeGreaterThan(.5);
     expect(face.eyeBlinkLeft).toBe(0);
   });
