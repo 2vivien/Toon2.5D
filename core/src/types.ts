@@ -17,7 +17,8 @@ export type FaceWeights=Readonly<MutableFaceWeights>;
 export type Vec3=Readonly<{x:number;y:number;z:number}>;
 export type Quaternion=Readonly<{x:number;y:number;z:number;w:number}>;
 export type Transform=Readonly<{position:Vec3;rotation:Quaternion;scale:Vec3}>;
-export type RuntimeStatus="created"|"ready"|"paused"|"disposed";
+export type RuntimeStatus="created"|"loading"|"ready"|"paused"|"disposed";
 export interface MorphBinding{readonly parameter:FaceParameter;readonly targets:readonly string[];readonly scale:number}
 export interface ExpressionProfile{readonly id:string;readonly version:1;readonly morphBindings:readonly MorphBinding[]}
+export interface RuntimeAsset{readonly uri:string;readonly morphBindings:readonly MorphBinding[]}
 export type AvatarDefinition=Readonly<{schemaVersion:1;assetId:string;expressionProfileId:string}>;
