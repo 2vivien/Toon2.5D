@@ -15,10 +15,15 @@ export function lookAtSource(config:LookAtConfig={horizontalLimit:1,verticalLimi
   let horizontal=0;
   let vertical=0;
   const contributions:MutableContribution[]=[
-    ["eyeLookInLeft"],["eyeLookOutLeft"],["eyeLookUpLeft"],["eyeLookDownLeft"],
-    ["eyeLookInRight"],["eyeLookOutRight"],["eyeLookUpRight"],["eyeLookDownRight"]
-  ].map(([parameter])=>({source:"lookAt",parameter,value:0,weight:1,priority:60,mode:"override"} as MutableContribution));
-
+    {source:"lookAt",parameter:"eyeLookInLeft",value:0,weight:1,priority:60,mode:"override"},
+    {source:"lookAt",parameter:"eyeLookOutLeft",value:0,weight:1,priority:60,mode:"override"},
+    {source:"lookAt",parameter:"eyeLookUpLeft",value:0,weight:1,priority:60,mode:"override"},
+    {source:"lookAt",parameter:"eyeLookDownLeft",value:0,weight:1,priority:60,mode:"override"},
+    {source:"lookAt",parameter:"eyeLookInRight",value:0,weight:1,priority:60,mode:"override"},
+    {source:"lookAt",parameter:"eyeLookOutRight",value:0,weight:1,priority:60,mode:"override"},
+    {source:"lookAt",parameter:"eyeLookUpRight",value:0,weight:1,priority:60,mode:"override"},
+    {source:"lookAt",parameter:"eyeLookDownRight",value:0,weight:1,priority:60,mode:"override"}
+  ];
   return{
     id:"lookAt",
     evaluate(context:ExpressionContext):readonly ExpressionContribution[]{
@@ -27,16 +32,15 @@ export function lookAtSource(config:LookAtConfig={horizontalLimit:1,verticalLimi
       const desiredVertical=target?clamp(target.y,-verticalLimit,verticalLimit):0;
       horizontal+=(desiredHorizontal-horizontal)*smoothing;
       vertical+=(desiredVertical-vertical)*smoothing;
-      const h=Math.max(0,Math.abs(horizontal)/horizontalLimit);
-      const v=Math.max(0,Math.abs(vertical)/verticalLimit);
-      contributions[0].value=horizontal>0?h:0;
-      contributions[1].value=horizontal<0?h:0;
-      contributions[4].value=horizontal<0?h:0;
-      contributions[5].value=horizontal>0?h:0;
-      contributions[2].value=vertical>0?v:0;
-      contributions[3].value=vertical<0?v:0;
-      contributions[6].value=vertical>0?v:0;
-      contributions[7].value=vertical<0?v:0;
+      const values=[horizontal>0?horizontal/horizontalLimit:0,horizontal<0?-horizontal/horizontalLimit:0,
+        vertical>0?vertical/verticalLimit:0,vertical<0?-vertical/verticalLimit:0,
+        horizontal<0?-horizontal/horizontalLimit:0,horizontal>0?horizontal/horizontalLimit:0,
+        vertical>0?vertical/verticalLimit:0,vertical<0?-vertical/verticalLimit:0];
+      for(let index=0;index<contributions.length;index++){
+        const contribution=contributions[index];
+        const value=values[index];
+        if(contribution&&value!==undefined)contribution.value=clamp(value,0,1);
+      }
       return contributions;
     }
   };
