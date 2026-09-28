@@ -24,7 +24,8 @@ export function createAssetRegistry():AssetRegistry{
     resolveTexture(id){
       const manifest=entries.get(id);
       if(!manifest||manifest.mime==="model/gltf-binary")return undefined;
-      return {id:manifest.id,version:manifest.version,uri:manifest.uri,...(manifest.integrity?{integrity:manifest.integrity}:{}),...(manifest.trustedOrigins?{trustedOrigins:manifest.trustedOrigins}:{}),...(manifest.limits?{limits:{maxBytes:manifest.limits.maxBytes,maxTexturePixels:manifest.limits.maxTexturePixels}}:{})};
+      const limits=manifest.limits?{...(manifest.limits.maxBytes!==undefined?{maxBytes:manifest.limits.maxBytes}:{}),...(manifest.limits.maxTexturePixels!==undefined?{maxTexturePixels:manifest.limits.maxTexturePixels}:{})}:undefined;
+      return {id:manifest.id,version:manifest.version,uri:manifest.uri,...(manifest.integrity?{integrity:manifest.integrity}:{}),...(manifest.trustedOrigins?{trustedOrigins:manifest.trustedOrigins}:{}),...(limits&&Object.keys(limits).length>0?{limits}:{} )};
     },
     list(){return [...entries.values()]},
     clear(){entries.clear();}
