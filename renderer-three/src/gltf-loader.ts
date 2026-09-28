@@ -15,18 +15,16 @@ export async function loadGLTF(url:string,options:GLTFLoadOptions={}):Promise<GL
   if(protocol!=="https:"&&protocol!=="http:")throw new Error("Unsupported asset URL scheme.");
   const loader=new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
-  const draco=options.dracoPath?new DRACOLoader():null;
-  const ktx2=options.ktx2TranscoderPath&&options.renderer?new KTX2Loader():null;
-  if(draco){draco.setDecoderPath(options.dracoPath!);loader.setDRACOLoader(draco);}
-  if(ktx2){
-    ktx2.setTranscoderPath(options.ktx2TranscoderPath!);
-    ktx2.detectSupport(options.renderer!);
+  const dracoPath=options.dracoPath;
+  const transcoderPath=options.ktx2TranscoderPath;
+  const draco=dracoPath?new DRACOLoader():null;
+  const ktx2=transcoderPath&&options.renderer?new KTX2Loader():null;
+  if(draco&&dracoPath){draco.setDecoderPath(dracoPath);loader.setDRACOLoader(draco);}
+  if(ktx2&&transcoderPath&&options.renderer){
+    ktx2.setTranscoderPath(transcoderPath);
+    ktx2.detectSupport(options.renderer);
     loader.setKTX2Loader(ktx2);
   }
-  try{
-    return await loader.loadAsync(url);
-  }finally{
-    draco?.dispose();
-    ktx2?.dispose();
-  }
+  try{return await loader.loadAsync(url);}
+  finally{draco?.dispose();ktx2?.dispose();}
 }
