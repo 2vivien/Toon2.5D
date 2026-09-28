@@ -1,108 +1,27 @@
-# Animation System
+# Animation
 
-## Separation of concerns
+The animation runtime is deterministic and renderer-independent.
 
-Expression = current facial state.
+## Player
 
-Animation = change through time.
+AnimationPlayer supports validated single-clip playback, looping, interpolation and ExpressionSource attachment.
 
-Pose = spatial state.
+## State machine
 
-The three systems can interact but must remain conceptually separate.
+AnimationStateMachine supports named states, loop/speed settings, numeric parameters, triggers, transition conditions, enter/exit callbacks and transition callbacks.
 
-## Current V0 stack
+A transition emits two weighted clip outputs. The triggering frame advances the fade so the output remains continuous.
 
-```
-AnimationPlayer
-    |
-    +--> Clip
-    +--> Tracks
-    +--> Keyframes
-    +--> Interpolation
-    |
-    v
-ExpressionSource
-    |
-    v
-Core ExpressionController
-```
+## Multi-clip blending
 
-The animation package is intentionally independent from core. The host application attaches the generated ExpressionSource to the runtime.
+MultiClipPlayer accepts uniquely identified layers with independent weight, time, loop and speed. Tracks are sampled and superposed into semantic face weights.
 
-## Current capabilities
+Both state-machine and multi-clip sources attach directly to ExpressionController through the runtime.
 
-V0 supports:
+## Renderer animation
 
-- deterministic keyframe sampling;
-- single-clip playback;
-- optional looping;
-- linear and smoothstep interpolation;
-- conversion of animation output into semantic face contributions.
+Three.js also provides AnimationMixer and AnimationAction for native GLB bone/morph animation. The semantic animation layer remains the public engine abstraction; native renderer animation stays inside renderer-three.
 
-## Not yet implemented
+## Runtime rule
 
-The following remain future animation layers:
-
-- animation state machine;
-- transition graph;
-- crossfading;
-- multi-clip blending;
-- dedicated AnimationController facade;
-- animation events.
-
-These must not be presented as current V0 capabilities.
-
-## Expression pipeline
-
-Expression sources are evaluated deterministically:
-
-1. look-at;
-2. emotion;
-3. lip-sync;
-4. blink;
-5. animation/custom sources;
-6. external face overrides;
-7. composition;
-8. facial constraints;
-9. renderer application.
-
-Every source produces semantic facial contributions. The renderer only applies the final resolved weights.
-
-## Expressions
-
-Expressions are normalized parameter sets. For example:
-
-```
-happy = {
-  mouthSmileLeft: 0.82,
-  mouthSmileRight: 0.82
-}
-```
-
-## Blendshapes
-
-Blendshapes/morph targets are preferred for fine facial deformation. Bones are preferred for structural movement such as head, jaw or hair where appropriate.
-
-## Interpolation
-
-Default continuous properties use smooth interpolation. Discrete asset selections do not interpolate.
-
-For a scalar:
-
-```
-x(t) = (1-u)x_0 + ux_1
-```
-
-where `u` is normalized time.
-
-## Composition
-
-Expression contribution composition is separate from animation clip blending. Contributions are resolved by explicit priority and blend mode. Direct face overrides use the highest priority and are represented as a source rather than mutating renderer state.
-
-## Determinism
-
-Animation time is driven by elapsed time supplied to the runtime. Tests advance time manually and do not require requestAnimationFrame.
-
-## Future facial tracking
-
-A tracking adapter can map landmarks to normalized facial parameters without changing the renderer or core semantic contract.
+The host owns requestAnimationFrame. Animation sources consume the same runtime delta as emotion, blink, lip-sync and LookAt.
