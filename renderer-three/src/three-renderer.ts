@@ -82,7 +82,7 @@ export class ThreeRenderer implements Renderer{
 
   async loadModel(scene:RendererScene,url:string,mappings:readonly RendererMorphBinding[]=[],asset?:RuntimeAsset):Promise<void>{
     const avatar=this.requireScene(scene);
-    const gltf=await loadGLTF(url,{renderer:this.renderer,maxBytes:asset?.limits?.maxBytes??asset?.maxBytes,maxTexturePixels:asset?.limits?.maxTexturePixels??asset?.maxTexturePixels,maxVertices:asset?.limits?.maxVertices??asset?.maxVertices,maxAnimations:asset?.limits?.maxAnimations??asset?.maxAnimations,trustedOrigins:asset?.trustedOrigins,integrity:asset?.integrity});
+    const gltf=await loadGLTF(url,{renderer:this.renderer,...(asset?.limits?.maxBytes!==undefined?{maxBytes:asset.limits.maxBytes}:{}),...(asset?.limits?.maxTexturePixels!==undefined?{maxTexturePixels:asset.limits.maxTexturePixels}:{}),...(asset?.limits?.maxVertices!==undefined?{maxVertices:asset.limits.maxVertices}:{}),...(asset?.limits?.maxAnimations!==undefined?{maxAnimations:asset.limits.maxAnimations}:{}),...(asset?.trustedOrigins?{trustedOrigins:asset.trustedOrigins}:{}),...(asset?.integrity?{integrity:asset.integrity}:{})});
     if(this.scenes.get(scene.id)!==avatar){
       disposeObject(gltf.scene);
       throw new Error("Renderer scene was disposed while the asset was loading.");
