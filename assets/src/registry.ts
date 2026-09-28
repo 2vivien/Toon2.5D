@@ -19,6 +19,7 @@ export function createAssetRegistry():AssetRegistry{
     resolve(id){
       const manifest=entries.get(id);
       if(!manifest)return undefined;
+      if(manifest.mime!=="model/gltf-binary"||!manifest.expressionProfile)return undefined;
       return {id:manifest.id,version:manifest.version,uri:manifest.uri,morphBindings:manifest.expressionProfile.morphBindings,...(manifest.integrity?{integrity:manifest.integrity}:{}),...(manifest.trustedOrigins?{trustedOrigins:manifest.trustedOrigins}:{}),...(manifest.limits?{limits:manifest.limits}:{}),...(manifest.rig?{rig:manifest.rig}:{})};
     },
     resolveTexture(id){
