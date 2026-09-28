@@ -175,7 +175,7 @@ export class ThreeRenderer implements Renderer{
         const gltf=await loadGLTF(item.assetUri,{renderer:this.renderer});
         if(this.scenes.get(scene.id)!==avatar){disposeObject(gltf.scene);throw new Error("Renderer scene was disposed during customization loading.")}
         gltf.scene.userData.customizationItemId=item.id;
-        if(item.textureUri){const texture=await loadTextureSecure(item.textureUri,{integrity:item.textureIntegrity,trustedOrigins:item.textureTrustedOrigins,maxBytes:item.textureLimits?.maxBytes,maxTexturePixels:item.textureLimits?.maxTexturePixels});applyTextureToRoot(gltf.scene,texture);}
+        if(item.textureUri){const texture=await loadTextureSecure(item.textureUri,{...(item.textureIntegrity?{integrity:item.textureIntegrity}:{}),...(item.textureTrustedOrigins?{trustedOrigins:item.textureTrustedOrigins}:{}),...(item.textureLimits?.maxBytes!==undefined?{maxBytes:item.textureLimits.maxBytes}:{}),...(item.textureLimits?.maxTexturePixels!==undefined?{maxTexturePixels:item.textureLimits.maxTexturePixels}:{})});applyTextureToRoot(gltf.scene,texture);}
         slot.add(gltf.scene);
       }
     }
