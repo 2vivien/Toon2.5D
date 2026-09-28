@@ -33,4 +33,4 @@ jobs:
       - name: Generate reference GLB
         run: blender --background --python assets/tools/build_reference_head.py
       - name: Validate reference GLB
-        run: test -s assets/generated/head.reference.glb
+        run: blender --background --python assets/tools/validate_reference_head.py
