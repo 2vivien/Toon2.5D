@@ -138,29 +138,27 @@ export class ThreeRenderer implements Renderer{
 
   setLookAtPose(scene:RendererScene,pose:LookAtPose):void{const avatar=this.requireScene(scene);const bones:THREE.Object3D[]=[];avatar.loadedRoot?.traverse(object=>{if(object.name==="Head"||object.name==="head"||object.name==="Eye.L"||object.name==="Eye.R")bones.push(object);});for(const bone of bones){if(bone.name==="Head"||bone.name==="head")bone.quaternion.set(pose.head.x,pose.head.y,pose.head.z,pose.head.w);else if(bone.name==="Eye.L")bone.quaternion.set(pose.leftEye.x,pose.leftEye.y,pose.leftEye.z,pose.leftEye.w);else if(bone.name==="Eye.R")bone.quaternion.set(pose.rightEye.x,pose.rightEye.y,pose.rightEye.z,pose.rightEye.w);}}
 
-  async applyCustomization(scene:RendererScene,customization:CharacterCustomization):Promise<void>{const avatar=this.requireScene(scene);for(const item of customization.items){const slot=avatar.slots.get(item.slot);if(!slot)continue;slot.children.slice().forEach(child=>{slot.remove(child);disposeObject(child);});if(item.assetUri){const gltf=await loadGLTF(item.assetUri,{renderer:this.renderer});slot.add(gltf.scene);}if(item.textureUri){const texture=await new THREE.TextureLoader().loadAsync(item.textureUri);slot.userData.texture=texture;slot.traverse(object=>{if(!(object instanceof THREE.Mesh))return;const materials=Array.isArray(object.material)?object.material:[object.material];for(const material of materials){if("map" in material){material.map=texture;material.needsUpdate=true;}}});}}}
-
-
-  resize(width:number,height:number):void{
-    const aspect=Math.max(width,1)/Math.max(height,1);
-    this.camera.left=-aspect;this.camera.right=aspect;this.camera.top=1;this.camera.bottom=-1;
-    this.camera.updateProjectionMatrix();this.perspectiveCamera.aspect=aspect;this.perspectiveCamera.updateProjectionMatrix();this.renderer.setSize(width,height,false);
-  }
-
-  dispose(scene:RendererScene):void{
+  async applyCustomization(scene:RendererScene,customization:CharacterCustomization):Promise<void>{
     const avatar=this.requireScene(scene);
-    disposeObject(avatar.root);
-    this.scene.remove(avatar.root);this.scenes.delete(avatar.id);
+    for(const item of customization.items){
+      const slot=avatar.slots.get(item.slot);
+      if(!slot)continue;
+      for(const child of slot.children.slice()){slot.remove(child);disposeObject(child)}
+      if(item.assetUri){
+        const gltf=await loadGLTF(item.assetUri,{renderer:this.renderer});
+        if(this.scenes.get(scene.id)!==avatar){disposeObject(gltf.scene);throw new Error("Renderer scene was disposed during customization loading.")}
+        slot.add(gltf.scene);
+      }
+      if(item.textureUri){
+        const texture=await new THREE.TextureLoader().loadAsync(item.textureUri);
+        if(this.scenes.get(scene.id)!==avatar){texture.dispose();throw new Error("Renderer scene was disposed during texture loading.")}
+        const previous=slot.userData.texture as THREE.Texture|undefined;
+        previous?.dispose();slot.userData.texture=texture;
+        slot.traverse(object=>{
+          if(!(object instanceof THREE.Mesh))return;
+          const materials=Array.isArray(object.material)?object.material:[object.material];
+          for(const material of materials)if("map"in material){material.map=texture;material.needsUpdate=true}
+        });
+      }
+    }
   }
-
-  destroy():void{
-    for(const scene of this.scenes.values())this.dispose(scene);
-    this.renderer.dispose();
-  }
-
-  private requireScene(scene:RendererScene):AvatarScene{
-    const avatar=this.scenes.get(scene.id);
-    if(!avatar)throw new Error("Renderer scene is not owned by this renderer.");
-    return avatar;
-  }
-}
