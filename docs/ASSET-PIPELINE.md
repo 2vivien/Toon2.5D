@@ -14,7 +14,7 @@ The reference head defines:
 - Toon material slots;
 - asset version.
 
-Optional skeleton and camera framing metadata are future asset capabilities.
+Skeleton rig metadata and camera state are explicit runtime capabilities; manifests declare head and eye bone mappings.
 
 ## Semantic names
 
@@ -22,7 +22,7 @@ Canonical conceptual nodes include:
 
 AvatarRoot, Head, Face, Eye.L, Eye.R, Brow.L, Brow.R, Mouth, Hair.
 
-The V0 reference asset exposes the complete 52-parameter facial vocabulary as shape keys. Production assets may use aliases declared by their manifest.
+The V1 reference asset exposes the complete 52-parameter facial vocabulary as shape keys. Production assets may use aliases declared by their manifest.
 
 ## Validation
 
@@ -32,12 +32,12 @@ Current automated pipeline:
 2. Validate the generated GLB and its 52 facial morph targets.
 3. Run TypeScript build, typecheck and tests.
 
-Additional production gates:
+Additional production gates are executable through CI:
 
 1. Structural validation.
 2. Canonical visual renders.
 3. Performance benchmarks.
-4. Packaging and hashing.
+4. Packaging, integrity hashing and trusted-origin policy.
 
 ## Compression
 
@@ -55,4 +55,4 @@ The runtime quality controller can select quality tiers; application asset regis
 
 ## Separation
 
-The engine package must not bundle a huge asset catalog. Runtime and asset packs remain independently versioned.
+The engine package does not bundle a large asset catalog; manifests and versioned asset packs remain independently deployable. Runtime and asset packs remain independently versioned.
