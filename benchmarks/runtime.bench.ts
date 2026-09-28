@@ -21,5 +21,7 @@ describe("engine startup and runtime",()=>{
  bench("single avatar update/render",()=>{const runtime=createRuntime(definition,renderer);runtime.update(.016);runtime.render();runtime.destroy()});
  bench("100-avatar update/render",()=>{const runtimes=Array.from({length:100},()=>createRuntime(definition,renderer));for(const runtime of runtimes){runtime.update(.016);runtime.render();runtime.destroy()}});
  bench("dynamic quality adaptation",()=>{const quality=new DynamicQualityController();for(let i=0;i<120;i++)quality.sampleFrame(.016);quality.setVisible(false);void quality.state});
+ bench("asset resolver contract",()=>{const resolver={resolve:(id:string)=>id==="reference.head"?asset:undefined};void resolver.resolve("reference.head");void resolver.resolve("missing");});
+ bench("multi-avatar memory lifecycle",()=>{const runtimes=Array.from({length:250},()=>createRuntime(definition,renderer));for(const runtime of runtimes)runtime.destroy()});
  void asset;
 });
