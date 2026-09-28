@@ -1,1 +1,1 @@
-export default{root:".",server:{host:"127.0.0.1",port:5173,strictPort:true}};
+export default{root:"tests/browser",server:{host:"127.0.0.1",port:5173,strictPort:true}};
