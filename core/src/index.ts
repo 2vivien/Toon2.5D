@@ -7,3 +7,6 @@ export * from "./scene.js";
 export * from "./definition.js";
 export * from "./runtime.js";
 export * from "./expression/index.js";
+export * from "./camera.js";
+export * from "./look-at.js";
+export * from "./customization.js";
