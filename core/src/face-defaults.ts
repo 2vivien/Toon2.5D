@@ -1,18 +1,25 @@
 import type {FaceParameter,FaceWeights,MutableFaceWeights}from"./types.js";
 
 export const FACE_PARAMETERS:readonly FaceParameter[]=[
-  "mouthSmile","mouthOpen","mouthFrown","mouthPucker","mouthStretch","jawOpen",
-  "eyeBlinkLeft","eyeBlinkRight","eyeSquintLeft","eyeSquintRight","browRaiseLeft",
-  "browRaiseRight","browFurrowLeft","browFurrowRight","cheekRaiseLeft",
-  "cheekRaiseRight","cheekPuff","noseWrinkle","eyeLookHorizontal","eyeLookVertical"
+  "eyeBlinkLeft","eyeLookDownLeft","eyeLookInLeft","eyeLookOutLeft","eyeLookUpLeft","eyeSquintLeft","eyeWideLeft",
+  "eyeBlinkRight","eyeLookDownRight","eyeLookInRight","eyeLookOutRight","eyeLookUpRight","eyeSquintRight","eyeWideRight",
+  "jawForward","jawLeft","jawRight","jawOpen","mouthClose","mouthFunnel","mouthPucker","mouthLeft","mouthRight",
+  "mouthSmileLeft","mouthSmileRight","mouthFrownLeft","mouthFrownRight","mouthDimpleLeft","mouthDimpleRight",
+  "mouthStretchLeft","mouthStretchRight","mouthRollLower","mouthRollUpper","mouthShrugLower","mouthShrugUpper",
+  "mouthPressLeft","mouthPressRight","mouthLowerDownLeft","mouthLowerDownRight","mouthUpperUpLeft","mouthUpperUpRight",
+  "browDownLeft","browDownRight","browInnerUp","browOuterUpLeft","browOuterUpRight","cheekPuff","cheekSquintLeft",
+  "cheekSquintRight","noseSneerLeft","noseSneerRight","tongueOut"
 ];
 
 export function createNeutralFace():MutableFaceWeights{
   return {
-    mouthSmile:0,mouthOpen:0,mouthFrown:0,mouthPucker:0,mouthStretch:0,jawOpen:0,
-    eyeBlinkLeft:0,eyeBlinkRight:0,eyeSquintLeft:0,eyeSquintRight:0,
-    browRaiseLeft:0,browRaiseRight:0,browFurrowLeft:0,browFurrowRight:0,
-    cheekRaiseLeft:0,cheekRaiseRight:0,cheekPuff:0,noseWrinkle:0,
-    eyeLookHorizontal:0,eyeLookVertical:0
+    eyeBlinkLeft:0,eyeLookDownLeft:0,eyeLookInLeft:0,eyeLookOutLeft:0,eyeLookUpLeft:0,eyeSquintLeft:0,eyeWideLeft:0,
+    eyeBlinkRight:0,eyeLookDownRight:0,eyeLookInRight:0,eyeLookOutRight:0,eyeLookUpRight:0,eyeSquintRight:0,eyeWideRight:0,
+    jawForward:0,jawLeft:0,jawRight:0,jawOpen:0,mouthClose:0,mouthFunnel:0,mouthPucker:0,mouthLeft:0,mouthRight:0,
+    mouthSmileLeft:0,mouthSmileRight:0,mouthFrownLeft:0,mouthFrownRight:0,mouthDimpleLeft:0,mouthDimpleRight:0,
+    mouthStretchLeft:0,mouthStretchRight:0,mouthRollLower:0,mouthRollUpper:0,mouthShrugLower:0,mouthShrugUpper:0,
+    mouthPressLeft:0,mouthPressRight:0,mouthLowerDownLeft:0,mouthLowerDownRight:0,mouthUpperUpLeft:0,mouthUpperUpRight:0,
+    browDownLeft:0,browDownRight:0,browInnerUp:0,browOuterUpLeft:0,browOuterUpRight:0,cheekPuff:0,cheekSquintLeft:0,
+    cheekSquintRight:0,noseSneerLeft:0,noseSneerRight:0,tongueOut:0
   };
 }
