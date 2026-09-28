@@ -105,7 +105,7 @@ export class ThreeRenderer implements Renderer{
       disposeObject(gltf.scene);
       throw new Error(`Missing required facial morphs: ${missing.join(",")}`);
     }
-    if(avatar.loadedRoot){
+    if(avatar.loadedRoot){this.releaseCachedTextures(avatar.loadedRoot);
       disposeObject(avatar.loadedRoot);
       avatar.loadedRoot.removeFromParent();
     }
@@ -205,6 +205,8 @@ export class ThreeRenderer implements Renderer{
   }
 
   get isContextLost():boolean{return this.contextLost;}
+
+  private releaseCachedTextures(root:THREE.Object3D):void{root.traverse(object=>{const key=object.userData.cachedTextureId as string|undefined;if(key)this.textureCache.release(key)});}
 
   private markResourcesDirty(root:THREE.Object3D):void{
     root.traverse(object=>{
