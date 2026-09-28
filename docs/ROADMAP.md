@@ -27,7 +27,7 @@
 - skin, eyes and mouth fallback
 - asset manifest resolver
 - GLB morph binding
-- production customization composition
+- manifest-driven facial morph composition
 
 Hair/accessory composition and the full character definition resolver remain future work.
 
@@ -57,7 +57,6 @@ Implemented:
 
 Remaining:
 
-- runtime integration examples
 - state machine
 - transitions
 - crossfading
