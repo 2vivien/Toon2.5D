@@ -10,49 +10,78 @@ Pose = spatial state.
 
 The three systems can interact but must remain conceptually separate.
 
-## Animation stack
+## Current V0 stack
 
 ```
-State Machine
+AnimationPlayer
     |
-    v
-Animation Controller
-    |
-    +--> Timeline
+    +--> Clip
+    +--> Tracks
     +--> Keyframes
     +--> Interpolation
-    +--> Blend
     |
     v
-Avatar State
+ExpressionSource
+    |
+    v
+Core ExpressionController
 ```
 
-## V0 animations
+The animation package is intentionally independent from core. The host application attaches the generated ExpressionSource to the runtime.
 
-- idle
-- blink
-- look-at
-- smile
-- head turn
-- simple expression transitions
+## Current capabilities
+
+V0 supports:
+
+- deterministic keyframe sampling;
+- single-clip playback;
+- optional looping;
+- linear and smoothstep interpolation;
+- conversion of animation output into semantic face contributions.
+
+## Not yet implemented
+
+The following remain future animation layers:
+
+- animation state machine;
+- transition graph;
+- crossfading;
+- multi-clip blending;
+- dedicated AnimationController facade;
+- animation events.
+
+These must not be presented as current V0 capabilities.
+
+## Expression pipeline
+
+Expression sources are evaluated deterministically:
+
+1. emotion;
+2. lip-sync;
+3. blink;
+4. look-at;
+5. animation/custom sources;
+6. external face overrides;
+7. composition;
+8. facial constraints;
+9. renderer application.
+
+Every source produces semantic facial contributions. The renderer only applies the final resolved weights.
 
 ## Expressions
 
-Expressions are parameter sets:
+Expressions are normalized parameter sets. For example:
 
 ```
 happy = {
-  mouthSmile: 0.8,
-  cheekRaise: 0.35,
-  eyeSquint: 0.15
+  mouthSmileLeft: 0.82,
+  mouthSmileRight: 0.82
 }
 ```
 
-Values are normalized where possible.
-
 ## Blendshapes
 
-Blendshapes/morph targets are preferred for fine facial deformation. Bones are preferred for structural movement such as head/jaw/hair where appropriate.
+Blendshapes/morph targets are preferred for fine facial deformation. Bones are preferred for structural movement such as head, jaw or hair where appropriate.
 
 ## Interpolation
 
@@ -66,24 +95,14 @@ x(t) = (1-u)x_0 + ux_1
 
 where `u` is normalized time.
 
-## Blending
+## Composition
 
-If multiple animations affect the same property, each track declares a blend policy. The engine must prevent accidental last-write-wins behavior.
+Expression contribution composition is separate from animation clip blending. Contributions are resolved by explicit priority and blend mode. Direct face overrides use the highest priority and are represented as a source rather than mutating renderer state.
 
 ## Determinism
 
-Animation time is driven by elapsed time supplied to the runtime. Tests should be able to advance the clock manually without requestAnimationFrame.
-
-## Idle motion
-
-Idle motion must be subtle. It should use low-amplitude periodic functions and avoid expensive per-frame allocations.
-
-Example:
-
-```
-y(t) = y_0 + A sin(2πft + φ)
-```
+Animation time is driven by elapsed time supplied to the runtime. Tests advance time manually and do not require requestAnimationFrame.
 
 ## Future facial tracking
 
-A future tracking adapter can map landmarks to normalized facial parameters without changing the renderer.
+A tracking adapter can map landmarks to normalized facial parameters without changing the renderer or core semantic contract.
