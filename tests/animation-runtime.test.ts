@@ -29,8 +29,7 @@ describe("animation runtime integration",()=>{
       }]
     },false);
     const attachment=attachAnimation(runtime,player);
-    player.update(.5);
-    runtime.update(.016);
+    runtime.update(.5);
     expect(runtime.face.mouthSmileLeft).toBe(.5);
     attachment.detach();
     runtime.update(.016);
