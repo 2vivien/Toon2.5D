@@ -12,6 +12,7 @@ interface AvatarScene extends RendererScene{
   morphBindings:MorphBindingMap;
   loadedRoot?:THREE.Object3D;
   readonly slots:Map<string,THREE.Group>;
+  customizationMorphs:Partial<FaceWeights>;
 }
 
 export interface RendererMorphBinding{readonly parameter:keyof FaceWeights;readonly targets:readonly string[];readonly scale:number}
@@ -64,7 +65,7 @@ export class ThreeRenderer implements Renderer{
     mouth.scale.set(1,.35,.3);
     root.add(head,leftEye,rightEye,mouth);
     this.scene.add(root);
-    const slots=new Map<string,THREE.Group>();for(const slot of ["body","hair","top","bottom","shoes","accessory","head","texture"])slots.set(slot,new THREE.Group());slots.forEach(group=>root.add(group));const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots};
+    const slots=new Map<string,THREE.Group>();for(const slot of ["body","hair","top","bottom","shoes","accessory","head","texture"])slots.set(slot,new THREE.Group());slots.forEach(group=>root.add(group));const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots,customizationMorphs:{}};
     this.scenes.set(avatar.id,avatar);
     return avatar;
   }
@@ -116,16 +117,16 @@ export class ThreeRenderer implements Renderer{
 
   setFaceWeights(scene:RendererScene,weights:FaceWeights):void{
     const avatar=this.requireScene(scene);
-    if(avatar.morphBindings.size>0)applyMorphWeights(avatar.morphBindings,weights);
+    const merged={...weights,...avatar.customizationMorphs};if(avatar.morphBindings.size>0)applyMorphWeights(avatar.morphBindings,merged);
     const blinkLeft=1-weights.eyeBlinkLeft;
     const blinkRight=1-weights.eyeBlinkRight;
-    avatar.leftEye.scale.y=.15+.85*blinkLeft;
-    avatar.rightEye.scale.y=.15+.85*blinkRight;
-    avatar.mouth.scale.y=.2+.6*weights.jawOpen;
-    avatar.mouth.scale.x=.8+.35*((weights.mouthSmileLeft+weights.mouthSmileRight)/2);
-    avatar.mouth.position.y=-.28+.08*weights.jawOpen;
-    avatar.root.rotation.y=(weights.eyeLookOutLeft-weights.eyeLookInLeft)*.2;
-    avatar.root.rotation.x=(weights.eyeLookDownLeft-weights.eyeLookUpLeft)*.2;
+    avatar.leftEye.scale.y=.15+.85*(1-merged.eyeBlinkLeft);
+    avatar.rightEye.scale.y=.15+.85*(1-merged.eyeBlinkRight);
+    avatar.mouth.scale.y=.2+.6*merged.jawOpen;
+    avatar.mouth.scale.x=.8+.35*((merged.mouthSmileLeft+merged.mouthSmileRight)/2);
+    avatar.mouth.position.y=-.28+.08*merged.jawOpen;
+    avatar.root.rotation.y=(merged.eyeLookOutLeft-merged.eyeLookInLeft)*.2;
+    avatar.root.rotation.x=(merged.eyeLookDownLeft-merged.eyeLookUpLeft)*.2;
   }
 
   render(scene:RendererScene):void{const avatar=this.requireScene(scene);this.renderScene(avatar)}
@@ -144,7 +145,7 @@ export class ThreeRenderer implements Renderer{
       const slot=avatar.slots.get(item.slot);
       if(!slot)continue;
       for(const child of slot.children.slice()){slot.remove(child);disposeObject(child)}
-      if(item.assetUri){
+      if(item.morphs)avatar.customizationMorphs={...avatar.customizationMorphs,...item.morphs};\n      if(item.assetUri){
         const gltf=await loadGLTF(item.assetUri,{renderer:this.renderer});
         if(this.scenes.get(scene.id)!==avatar){disposeObject(gltf.scene);throw new Error("Renderer scene was disposed during customization loading.")}
         slot.add(gltf.scene);
