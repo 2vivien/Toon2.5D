@@ -2,73 +2,42 @@
 
 ## Unit
 
-Test math, transforms, interpolation, expression blending, facial sources, schema validation and asset resolution.
+The suite covers math, interpolation, expression blending, facial sources, schema validation, asset resolution, animation state machines, multi-clip blending, camera constraints, LookAt and cache lifecycle.
 
 ## Runtime integration
 
-Test initialization, load, update, resize, pause/resume, explicit overrides and disposal.
+Integration coverage includes initialization, animation attachment, state-machine attachment, rendering handoff, resize, pause/resume, explicit overrides, customization lifecycle and deterministic disposal.
 
 ## Browser
 
-Playwright browser tests are planned for:
+Playwright runs the real Studio bundle in headless Chromium with SwiftShader. The gate verifies:
 
-- first render;
-- customization;
-- animation;
-- responsive canvas;
-- failure handling.
-
-They are not yet part of the current automated V0 suite.
+- canvas creation and dimensions;
+- live Studio controls;
+- screenshot capture for visual inspection;
+- frame-time budget over a sustained sample window;
+- stable remount behavior.
 
 ## Visual regression
 
-Canonical scenes are planned:
-
-- front neutral;
-- front happy;
-- left 30 degrees;
-- right 30 degrees;
-- pitch limits;
-- blink;
-- hair/accessory variants.
-
-Use fixed camera, lighting and asset versions.
-
-## Asset contract tests
-
-The reference asset generator and validator enforce the current facial asset contract. Every production pack should pass structural validation before publication.
+Browser screenshots are retained as CI artifacts. Canonical visual baselines should be generated in the same pinned Chromium environment before enabling strict pixel-diff promotion.
 
 ## Performance
 
-The benchmark suite covers deterministic expression work. Browser regression coverage now runs the real Studio bundle in headless Chromium, verifies canvas output, frame-time budget, and repeated-mount observable heap growth. The CI browser gate is a release check.
+The browser gate measures frame intervals and enforces a p95 frame-time budget. GPU-specific timer availability is detected separately because deterministic GPU timings cannot be guaranteed across CI hosts.
 
-Record:
+## Asset contract
 
-- load;
-- decode;
-- first render;
-- frame time;
-- memory behavior.
+The Blender reference generator and validator enforce the 52-morph asset contract.
 
 ## Deterministic time
 
-Animation tests use explicit elapsed time instead of real requestAnimationFrame.
+Animation tests use explicit elapsed time instead of relying on requestAnimationFrame.
 
 ## Failure tests
 
-Required failure coverage includes:
-
-- missing asset;
-- malformed manifest;
-- unsupported compression;
-- renderer failure;
-- context loss;
-- repeated destroy;
-- duplicate load;
-- cancellation.
-
-Current coverage is partial; context-loss and browser failure paths remain future test gates.
+Coverage includes malformed animation timing, duplicate state/layer identifiers, invalid camera values, invalid customization URLs, duplicate loads and renderer scene disposal.
 
 ## Release gate
 
-No stable release without unit, integration, browser, asset and performance gates.
+A stable release requires build, strict typecheck, unit/integration tests, reference asset validation and browser performance/smoke gates.
