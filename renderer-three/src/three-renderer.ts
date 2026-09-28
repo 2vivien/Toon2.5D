@@ -10,6 +10,7 @@ interface AvatarScene extends RendererScene{
   readonly rightEye:THREE.Mesh;
   readonly mouth:THREE.Mesh;
   morphBindings:MorphBindingMap;
+  loadedRoot?:THREE.Object3D;
 }
 
 export interface RendererMorphBinding{readonly parameter:keyof FaceWeights;readonly targets:readonly string[];readonly scale:number}
@@ -18,6 +19,15 @@ export interface ThreeRendererOptions{
   readonly canvas:HTMLCanvasElement;
   readonly background?:number;
   readonly pixelRatio?:number;
+}
+
+function disposeObject(root:THREE.Object3D):void{
+  root.traverse(object=>{
+    if(!(object instanceof THREE.Mesh))return;
+    object.geometry.dispose();
+    const materials=Array.isArray(object.material)?object.material:[object.material];
+    for(const material of materials)material.dispose();
+  });
 }
 
 export class ThreeRenderer implements Renderer{
@@ -72,17 +82,23 @@ export class ThreeRenderer implements Renderer{
   async loadModel(scene:RendererScene,url:string,mappings:readonly RendererMorphBinding[]=[]):Promise<void>{
     const avatar=this.requireScene(scene);
     const gltf=await loadGLTF(url,{renderer:this.renderer});
+    const morphBindings=collectMorphBindings(gltf.scene,mappings);
+    const missing=findMissingMorphParameters(morphBindings,mappings.map(mapping=>mapping.parameter));
+    if(missing.length>0){
+      disposeObject(gltf.scene);
+      throw new Error(`Missing required facial morphs: ${missing.join(",")}`);
+    }
+    if(avatar.loadedRoot){
+      disposeObject(avatar.loadedRoot);
+      avatar.loadedRoot.removeFromParent();
+    }
     avatar.head.visible=false;
     avatar.leftEye.visible=false;
     avatar.rightEye.visible=false;
     avatar.mouth.visible=false;
     avatar.root.add(gltf.scene);
-    avatar.morphBindings=collectMorphBindings(gltf.scene,mappings);
-    const missing=findMissingMorphParameters(avatar.morphBindings,mappings.map(mapping=>mapping.parameter));
-    if(missing.length>0){
-      gltf.scene.removeFromParent();
-      throw new Error(`Missing required facial morphs: ${missing.join(",")}`);
-    }
+    avatar.loadedRoot=gltf.scene;
+    avatar.morphBindings=morphBindings;
   }
 
   setAvatarTransform(scene:RendererScene,transform:Transform):void{
@@ -116,12 +132,7 @@ export class ThreeRenderer implements Renderer{
 
   dispose(scene:RendererScene):void{
     const avatar=this.requireScene(scene);
-    avatar.root.traverse(object=>{
-      if(!(object instanceof THREE.Mesh))return;
-      object.geometry.dispose();
-      const materials=Array.isArray(object.material)?object.material:[object.material];
-      for(const material of materials)material.dispose();
-    });
+    disposeObject(avatar.root);
     this.scene.remove(avatar.root);this.scenes.delete(avatar.id);
   }
 
