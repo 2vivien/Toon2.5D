@@ -40,8 +40,10 @@ export function blinkSource(config:Partial<BlinkConfig>={}):ExpressionSource{
       if(time>=0&&time<close)value=time/close;
       else if(time>=close&&time<close+hold)value=1;
       else if(time>=close+hold&&time<duration)value=1-(time-close-hold)/open;
-      contributions[0].value=clamp01(value);
-      contributions[1].value=clamp01(value);
+      const left=contributions[0];
+      const right=contributions[1];
+      if(left)left.value=clamp01(value);
+      if(right)right.value=clamp01(value);
       return contributions;
     }
   };
