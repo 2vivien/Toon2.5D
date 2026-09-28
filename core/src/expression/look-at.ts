@@ -29,9 +29,11 @@ export function lookAtSource(config:LookAtConfig={horizontalLimit:1,verticalLimi
     id:"lookAt",
     evaluate(context:ExpressionContext):readonly ExpressionContribution[]{
       const target=context.lookTarget;
-      const solved=target?solveLookAtState({x:0,y:0,z:0},target,{yaw:horizontalLimit,pitch:verticalLimit}):null;
-      const desiredHorizontal=solved?.yaw??0;
-      const desiredVertical=solved?.pitch??0;
+      const requestedHorizontal=target?clamp(target.x,-horizontalLimit,horizontalLimit):0;
+      const requestedVertical=target?clamp(target.y,-verticalLimit,verticalLimit):0;
+      const solved=solveLookAtState({x:0,y:0,z:0},{x:Math.tan(requestedHorizontal),y:Math.tan(requestedVertical),z:1},{yaw:horizontalLimit,pitch:verticalLimit});
+      const desiredHorizontal=solved.yaw;
+      const desiredVertical=solved.pitch;
       horizontal+=(desiredHorizontal-horizontal)*smoothing;
       vertical+=(desiredVertical-vertical)*smoothing;
       const values=[horizontal>0?horizontal/horizontalLimit:0,horizontal<0?-horizontal/horizontalLimit:0,
