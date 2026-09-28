@@ -12,6 +12,8 @@ interface AvatarScene extends RendererScene{
   morphBindings:MorphBindingMap;
 }
 
+export interface RendererMorphBinding{readonly parameter:keyof FaceWeights;readonly targets:readonly string[];readonly scale:number}
+
 export interface ThreeRendererOptions{
   readonly canvas:HTMLCanvasElement;
   readonly background?:number;
@@ -59,7 +61,7 @@ export class ThreeRenderer implements Renderer{
     return eye;
   }
 
-  async loadModel(scene:RendererScene,url:string):Promise<void>{
+  async loadModel(scene:RendererScene,url:string,mappings:readonly RendererMorphBinding[]=[]):Promise<void>{
     const avatar=this.requireScene(scene);
     const gltf=await loadGLTF(url,{renderer:this.renderer});
     avatar.head.visible=false;
@@ -67,7 +69,7 @@ export class ThreeRenderer implements Renderer{
     avatar.rightEye.visible=false;
     avatar.mouth.visible=false;
     avatar.root.add(gltf.scene);
-    avatar.morphBindings=collectMorphBindings(gltf.scene);
+    avatar.morphBindings=collectMorphBindings(gltf.scene,mappings);
   }
 
   setAvatarTransform(scene:RendererScene,transform:Transform):void{
