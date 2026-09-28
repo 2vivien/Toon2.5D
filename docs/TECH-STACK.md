@@ -1,6 +1,6 @@
 # Technology Stack
 
-## Current V0 runtime
+## Current V1 runtime
 
 - TypeScript 7.0.x with strict compiler settings.
 - Three.js 0.186.x for the first renderer adapter.
