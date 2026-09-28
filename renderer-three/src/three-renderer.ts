@@ -13,6 +13,9 @@ interface AvatarScene extends RendererScene{
   loadedRoot?:THREE.Object3D;
   readonly slots:Map<string,THREE.Group>;
   customizationMorphs:Partial<FaceWeights>;
+  readonly camera:THREE.OrthographicCamera;
+  readonly perspectiveCamera:THREE.PerspectiveCamera;
+  rig?:{headBone:string;leftEyeBone:string;rightEyeBone:string};
 }
 
 export interface RendererMorphBinding{readonly parameter:keyof FaceWeights;readonly targets:readonly string[];readonly scale:number}
@@ -35,8 +38,6 @@ function disposeObject(root:THREE.Object3D):void{
 export class ThreeRenderer implements Renderer{
   private readonly renderer:THREE.WebGLRenderer;
   private readonly scene=new THREE.Scene();
-  private readonly camera=new THREE.OrthographicCamera(-1,1,1,-1,.01,100);
-  private readonly perspectiveCamera=new THREE.PerspectiveCamera(35,1,.01,100);
   private readonly scenes=new Map<string,AvatarScene>();
   private contextLost=false;
   private readonly onContextLost=(event:Event)=>{event.preventDefault();this.contextLost=true;};
@@ -49,7 +50,6 @@ export class ThreeRenderer implements Renderer{
     const key=new THREE.DirectionalLight(0xffffff,1.8);
     key.position.set(2,3,4);
     this.scene.add(fill,key);
-    this.camera.position.z=5;
     this.renderer.setPixelRatio(Math.min(options.pixelRatio??1.5,2));
     options.canvas.addEventListener("webglcontextlost",this.onContextLost,false);
     options.canvas.addEventListener("webglcontextrestored",this.onContextRestored,false);
@@ -57,6 +57,8 @@ export class ThreeRenderer implements Renderer{
 
   createScene():RendererScene{
     const root=new THREE.Group();
+    const camera=new THREE.OrthographicCamera(-1,1,1,-1,.01,100);camera.position.z=5;
+    const perspectiveCamera=new THREE.PerspectiveCamera(35,1,.01,100);perspectiveCamera.position.z=5;
     const head=new THREE.Mesh(new THREE.SphereGeometry(1,32,24),new THREE.MeshStandardMaterial({color:0xf0b28f,roughness:.8}));
     const eyeMaterial=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.5});
     const pupilMaterial=new THREE.MeshStandardMaterial({color:0x222222,roughness:.4});
@@ -70,7 +72,7 @@ export class ThreeRenderer implements Renderer{
     mouth.scale.set(1,.35,.3);
     root.add(head,leftEye,rightEye,mouth);
     this.scene.add(root);
-    const slots=new Map<string,THREE.Group>();for(const slot of ["body","hair","top","bottom","shoes","accessory","head","texture"])slots.set(slot,new THREE.Group());slots.forEach(group=>root.add(group));const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots,customizationMorphs:{}};
+    const slots=new Map<string,THREE.Group>();for(const slot of ["body","hair","top","bottom","shoes","accessory","head","texture"])slots.set(slot,new THREE.Group());slots.forEach(group=>root.add(group));const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots,customizationMorphs:{},camera,perspectiveCamera};
     this.scenes.set(avatar.id,avatar);
     return avatar;
   }
@@ -84,12 +86,12 @@ export class ThreeRenderer implements Renderer{
   }
 
   async loadAsset(scene:RendererScene,asset:{readonly uri:string;readonly morphBindings:readonly RendererMorphBinding[]}):Promise<void>{
-    await this.loadModel(scene,asset.uri,asset.morphBindings);
+    await this.loadModel(scene,asset.uri,asset.morphBindings,asset);
   }
 
-  async loadModel(scene:RendererScene,url:string,mappings:readonly RendererMorphBinding[]=[]):Promise<void>{
+  async loadModel(scene:RendererScene,url:string,mappings:readonly RendererMorphBinding[]=[],asset?:{readonly maxBytes?:number;readonly maxTexturePixels?:number;readonly maxVertices?:number;readonly maxAnimations?:number;readonly limits?:{readonly maxBytes?:number;readonly maxTexturePixels?:number;readonly maxVertices?:number;readonly maxAnimations?:number};readonly trustedOrigins?:readonly string[];readonly integrity?:string;readonly rig?:{readonly headBone:string;readonly leftEyeBone:string;readonly rightEyeBone:string}}):Promise<void>{
     const avatar=this.requireScene(scene);
-    const gltf=await loadGLTF(url,{renderer:this.renderer});
+    const gltf=await loadGLTF(url,{renderer:this.renderer,maxBytes:asset?.limits?.maxBytes??asset?.maxBytes,maxTexturePixels:asset?.limits?.maxTexturePixels??asset?.maxTexturePixels,maxVertices:asset?.limits?.maxVertices??asset?.maxVertices,maxAnimations:asset?.limits?.maxAnimations??asset?.maxAnimations,trustedOrigins:asset?.trustedOrigins,integrity:asset?.integrity});
     if(this.scenes.get(scene.id)!==avatar){
       disposeObject(gltf.scene);
       throw new Error("Renderer scene was disposed while the asset was loading.");
@@ -111,6 +113,7 @@ export class ThreeRenderer implements Renderer{
     avatar.root.add(gltf.scene);
     avatar.loadedRoot=gltf.scene;
     avatar.morphBindings=morphBindings;
+    avatar.rig=asset?.rig;
   }
 
   setAvatarTransform(scene:RendererScene,transform:Transform):void{
@@ -135,14 +138,14 @@ export class ThreeRenderer implements Renderer{
   }
 
   render(scene:RendererScene):void{if(this.contextLost)return;const avatar=this.requireScene(scene);this.renderScene(avatar)}
-  protected renderScene(avatar:AvatarScene):void{const camera=avatar.root.userData.cameraMode==="perspective"?this.perspectiveCamera:this.camera;this.renderer.render(this.scene,camera)}
-  protected renderAll():void{this.renderer.render(this.scene,this.camera)}
+  protected renderScene(avatar:AvatarScene):void{const camera=avatar.root.userData.cameraMode==="perspective"?avatar.perspectiveCamera:avatar.camera;this.renderer.render(this.scene,camera)}
+  protected renderAll():void{for(const id of this.scenes.keys()){const avatar=this.scenes.get(id);if(avatar)this.renderScene(avatar)}}
 
   setQuality(tier:QualityTier):void{const ratios:Record<QualityTier,number>={low:.75,medium:1,high:1.5,ultra:2};this.renderer.setPixelRatio(ratios[tier]);}
 
-  setPerspectiveCamera(scene:RendererScene,camera:PerspectiveCameraState):void{const avatar=this.requireScene(scene);this.perspectiveCamera.fov=camera.fov;this.perspectiveCamera.aspect=camera.aspect;this.perspectiveCamera.near=camera.near;this.perspectiveCamera.far=camera.far;this.perspectiveCamera.updateProjectionMatrix();avatar.root.userData.cameraMode="perspective";}
+  setPerspectiveCamera(scene:RendererScene,camera:PerspectiveCameraState):void{const avatar=this.requireScene(scene);avatar.perspectiveCamera.fov=camera.fov;avatar.perspectiveCamera.aspect=camera.aspect;avatar.perspectiveCamera.near=camera.near;avatar.perspectiveCamera.far=camera.far;avatar.perspectiveCamera.updateProjectionMatrix();avatar.root.userData.cameraMode="perspective";}
 
-  setLookAtPose(scene:RendererScene,pose:LookAtPose):void{const avatar=this.requireScene(scene);const bones:THREE.Object3D[]=[];avatar.loadedRoot?.traverse(object=>{if(object.name==="Head"||object.name==="head"||object.name==="Eye.L"||object.name==="Eye.R")bones.push(object);});for(const bone of bones){if(bone.name==="Head"||bone.name==="head")bone.quaternion.set(pose.head.x,pose.head.y,pose.head.z,pose.head.w);else if(bone.name==="Eye.L")bone.quaternion.set(pose.leftEye.x,pose.leftEye.y,pose.leftEye.z,pose.leftEye.w);else if(bone.name==="Eye.R")bone.quaternion.set(pose.rightEye.x,pose.rightEye.y,pose.rightEye.z,pose.rightEye.w);}}
+  setLookAtPose(scene:RendererScene,pose:LookAtPose):void{const avatar=this.requireScene(scene);const bones:THREE.Object3D[]=[];avatar.loadedRoot?.traverse(object=>{if(avatar.rig){if(object.name===avatar.rig.headBone||object.name===avatar.rig.leftEyeBone||object.name===avatar.rig.rightEyeBone)bones.push(object)}else if(object.name==="Head"||object.name==="head"||object.name==="Eye.L"||object.name==="Eye.R")bones.push(object);});for(const bone of bones){if(bone.name===(avatar.rig?.headBone??"Head")||(!avatar.rig&&(bone.name==="Head"||bone.name==="head")) )bone.quaternion.set(pose.head.x,pose.head.y,pose.head.z,pose.head.w);else if(bone.name===(avatar.rig?.leftEyeBone??"Eye.L"))bone.quaternion.set(pose.leftEye.x,pose.leftEye.y,pose.leftEye.z,pose.leftEye.w);else if(bone.name===(avatar.rig?.rightEyeBone??"Eye.R"))bone.quaternion.set(pose.rightEye.x,pose.rightEye.y,pose.rightEye.z,pose.rightEye.w);}}
 
   async applyCustomization(scene:RendererScene,customization:CharacterCustomization):Promise<void>{
     const avatar=this.requireScene(scene);
@@ -172,8 +175,7 @@ export class ThreeRenderer implements Renderer{
 
   resize(width:number,height:number):void{
     const aspect=Math.max(width,1)/Math.max(height,1);
-    this.camera.left=-aspect;this.camera.right=aspect;this.camera.top=1;this.camera.bottom=-1;
-    this.camera.updateProjectionMatrix();this.perspectiveCamera.aspect=aspect;this.perspectiveCamera.updateProjectionMatrix();this.renderer.setSize(width,height,false);
+    for(const avatar of this.scenes.values()){avatar.camera.left=-aspect;avatar.camera.right=aspect;avatar.camera.top=1;avatar.camera.bottom=-1;avatar.camera.updateProjectionMatrix();avatar.perspectiveCamera.aspect=aspect;avatar.perspectiveCamera.updateProjectionMatrix();}this.renderer.setSize(width,height,false);
   }
 
   dispose(scene:RendererScene):void{
