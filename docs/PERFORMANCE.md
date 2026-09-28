@@ -1,86 +1,45 @@
 # Performance
 
-Performance is a first-class contract.
+Performance is a first-class runtime contract.
 
-## Primary budgets
+## Budgets
 
 The engine targets:
 
-- low CPU overhead when idle;
-- bounded GPU resource usage;
-- minimal allocations in the frame loop;
-- one shared renderer/context per application where possible;
-- lazy loading of optional assets.
+- bounded CPU work in the frame loop;
+- bounded GPU resource ownership;
+- minimal hot-path allocations;
+- shared renderer/context operation;
+- lazy asset loading;
+- adaptive pixel ratio under load.
 
-These are architectural targets; V0 does not yet implement every optimization.
+## Hot-path rules
 
-## Current V0 rules
+Forbidden:
 
-Forbidden in hot paths:
-
-- repeated JSON parsing;
+- JSON parsing;
 - DOM queries;
 - React state updates;
-- large temporary arrays;
-- creating Three.js objects every frame;
-- loading assets during render.
+- large temporary allocations;
+- Three.js object creation;
+- asset loading.
 
-The core expression pipeline reuses its output and contribution buffers. Animation integration should preserve the same allocation discipline.
+The expression and animation pipelines reuse buffers.
 
-## Memory
+## Memory ownership
 
-Track:
+Instance state is separated from renderer-owned resources. GLB replacement, rejected loads, customization swaps and scene disposal release owned geometry, materials and textures.
 
-- geometries;
-- textures;
-- materials;
-- animation clips;
-- GPU buffers;
-- cached GLTF scenes.
+The asset cache bounds retained resources by byte budget and reference count.
 
-Every resource category must have an explicit disposal strategy. Rejected GLB loads must dispose resources created before validation failure.
+## Quality and throttling
 
-## Many avatars
+DynamicQualityController selects Low/Medium/High/Ultra from visibility and exponentially smoothed frame rate. The React adapter uses IntersectionObserver and only advances/render frames while visible.
 
-The target architecture is:
+## Shared rendering
 
-```
-One runtime/renderer
-  +
-Shared immutable assets
-  +
-Per-instance transforms/state
-```
-
-The current React adapter still creates one renderer per ToonAvatar instance. Shared renderer/context management is future work.
-
-## Quality tiers
-
-Low, medium and high quality profiles are planned. V0 exposes configurable pixel ratio but does not yet provide complete quality presets.
-
-## DPR
-
-The Three.js adapter caps configured pixel ratio to avoid unnecessarily expensive rendering on high-density displays.
-
-## Visibility
-
-Applications can explicitly call pause() and resume(). Automatic visibility-based throttling is not implemented in the current React adapter.
+SharedThreeRenderer keeps multiple avatar scenes on one Three.js context and exposes renderFrame() for host-controlled frame coordination. Individual runtime render calls register their scene; the shared frame renders the renderer-owned scene once.
 
 ## Profiling
 
-Measure before optimizing. Every optimization should have benchmark or profiling evidence.
-
-Track:
-
-- frame time;
-- CPU update time;
-- GPU frame time where available;
-- asset download size;
-- decode time;
-- JS heap;
-- GPU memory where measurable;
-- time to first rendered avatar.
-
-## Performance gates
-
-Performance regression gates are enforced in CI through the browser Studio fixture: a real canvas render, a frame-time p95 budget, and repeated-mount observable heap-growth bound. GPU-specific hardware variance remains outside deterministic CI claims.
+Track frame time, CPU update time, GPU time where supported, asset load/decode time, JS heap and GPU resource counts. Browser CI enforces deterministic software-visible budgets; physical GPU benchmarks remain deployment-specific.
