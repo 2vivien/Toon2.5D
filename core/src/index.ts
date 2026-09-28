@@ -11,3 +11,4 @@ export * from "./camera.js";
 export * from "./look-at.js";
 export * from "./customization.js";
 export * from "./quality.js";
+export * from "./cache.js";
