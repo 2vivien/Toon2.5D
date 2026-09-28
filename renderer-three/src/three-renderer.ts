@@ -128,7 +128,9 @@ export class ThreeRenderer implements Renderer{
     avatar.root.rotation.x=(weights.eyeLookDownLeft-weights.eyeLookUpLeft)*.2;
   }
 
-  render(scene:RendererScene):void{const avatar=this.requireScene(scene);const camera=avatar.root.userData.cameraMode==="perspective"?this.perspectiveCamera:this.camera;this.renderer.render(this.scene,camera);}
+  render(scene:RendererScene):void{const avatar=this.requireScene(scene);this.renderScene(avatar)}
+  protected renderScene(avatar:AvatarScene):void{const camera=avatar.root.userData.cameraMode==="perspective"?this.perspectiveCamera:this.camera;this.renderer.render(this.scene,camera)}
+  protected renderAll():void{this.renderer.render(this.scene,this.camera)}
 
   setQuality(tier:QualityTier):void{const ratios:Record<QualityTier,number>={low:.75,medium:1,high:1.5,ultra:2};this.renderer.setPixelRatio(ratios[tier]);}
 
