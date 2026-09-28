@@ -1,0 +1,3 @@
+import{describe,expect,it}from"vitest";import{createMultiClipPlayer}from"../animation/src/index.js";
+const clip=(id:string,value:number)=>({id,duration:1,tracks:[{parameter:"mouthSmileLeft"as const,easing:"linear"as const,keys:[{time:0,value},{time:1,value}]}]});
+describe("multi clip player",()=>{it("superposes weighted tracks",()=>{const player=createMultiClipPlayer();player.setLayers([{id:"a",clip:clip("a",.4),weight:.5,time:0,loop:false},{id:"b",clip:clip("b",.8),weight:.5,time:0,loop:false}]);player.update(0);expect(player.output().mouthSmileLeft).toBeCloseTo(.6)})})
