@@ -11,7 +11,7 @@ export function createAssetCache<T>(loader:(asset:RuntimeAsset)=>Promise<T>,disp
  acquire(key){const entry=entries.get(key);if(!entry)return undefined;entry.references+=1;entry.lastUsed=Date.now();return entry.value},
  release(key){const entry=entries.get(key);if(!entry)return;entry.references=Math.max(0,entry.references-1);entry.lastUsed=Date.now();evict()},
  invalidate(key){const entry=entries.get(key);if(!entry)return;if(entry.references>0)throw new Error("Cannot invalidate an acquired asset.");bytes-=entry.size;disposer(entry.value);entries.delete(key)},
- clear(){for(const entry of entries.values())if(entry.references===0)disposer(entry.value);entries.clear();bytes=0},
+ clear(){if([...entries.values()].some(entry=>entry.references>0))throw new Error("Cannot clear cache while assets are acquired.");for(const entry of entries.values())disposer(entry.value);entries.clear();bytes=0},
  async preload(assets){for(const asset of assets){const key=keyOf(asset);if(entries.has(key))continue;const running=pending.get(key);if(running){await running;continue}const promise=loader(asset);pending.set(key,promise);try{const value=await promise;set(key,value)}finally{pending.delete(key)}}
  },
  stats(){return{entries:entries.size,bytes}}
