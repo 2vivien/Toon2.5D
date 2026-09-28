@@ -5,6 +5,9 @@ export interface LookAtConfig{readonly horizontalLimit:number;readonly verticalL
 interface MutableContribution{source:"lookAt";parameter:"eyeLookHorizontal"|"eyeLookVertical";value:number;weight:1;priority:60;mode:"override"}
 
 export function lookAtSource(config:LookAtConfig={horizontalLimit:1,verticalLimit:1,smoothing:.2}):ExpressionSource{
+  const horizontalLimit=Math.max(.001,Math.abs(config.horizontalLimit));
+  const verticalLimit=Math.max(.001,Math.abs(config.verticalLimit));
+  const smoothing=clamp(config.smoothing,0,1);
   let horizontal=0;
   let vertical=0;
   const contributions:MutableContribution[]=[
@@ -15,13 +18,12 @@ export function lookAtSource(config:LookAtConfig={horizontalLimit:1,verticalLimi
     id:"lookAt",
     evaluate(context:ExpressionContext):readonly ExpressionContribution[]{
       const target=context.lookTarget;
-      const desiredHorizontal=target?clamp(target.x,-config.horizontalLimit,config.horizontalLimit):0;
-      const desiredVertical=target?clamp(target.y,-config.verticalLimit,config.verticalLimit):0;
-      const alpha=clamp(config.smoothing,0,1);
-      horizontal+=(desiredHorizontal-horizontal)*alpha;
-      vertical+=(desiredVertical-vertical)*alpha;
-      contributions[0].value=(horizontal/config.horizontalLimit+1)/2;
-      contributions[1].value=(vertical/config.verticalLimit+1)/2;
+      const desiredHorizontal=target?clamp(target.x,-horizontalLimit,horizontalLimit):0;
+      const desiredVertical=target?clamp(target.y,-verticalLimit,verticalLimit):0;
+      horizontal+=(desiredHorizontal-horizontal)*smoothing;
+      vertical+=(desiredVertical-vertical)*smoothing;
+      contributions[0].value=(horizontal/horizontalLimit+1)/2;
+      contributions[1].value=(vertical/verticalLimit+1)/2;
       return contributions;
     }
   };
