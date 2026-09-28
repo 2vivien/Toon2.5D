@@ -10,7 +10,7 @@ V1 is released only from a commit that passes the complete executable validation
 4. Reproducible Blender reference GLB generation and validation.
 5. Playwright Studio browser smoke coverage.
 6. Browser frame-time budget: p95 under 40 ms in the CI browser gate.
-7. WebGL2 GPU timer regression signal when `EXT_disjoint_timer_query_webgl2` is available.
+7. WebGL2 GPU timer regression signal when `EXT_disjoint_timer_query_webgl2` is available.\n8. Repeated-mount observable heap-growth check when Chromium exposes `performance.memory`.\n9. Executable documentation consistency check.\n10. WebGL context-loss/restoration behavior covered by renderer lifecycle tests.
 
 The GPU timer test measures an actual GPU command through WebGL2 timer queries. It is deliberately conditional because timer-query support is not universal. Unsupported environments are reported as skipped/unsupported rather than being treated as a measured pass.
 
