@@ -23,6 +23,21 @@ V0.1 architecture requires:
 
 A requirement in this blueprint is not considered implemented until executable code and tests provide evidence.
 
+## 2. V0.1 explicit limits
+
+The V0.1 release is intentionally bounded by these ten rules:
+
+1. V0.1 uses deterministic single-clip animation only.
+2. V0.1 has no animation state machine.
+3. V0.1 has no crossfade or multi-clip blending.
+4. V0.1 uses an orthographic camera only.
+5. V0.1 does not implement dedicated head/eye bone LookAt; LookAt remains semantic with the documented renderer approximation.
+6. V0.1 does not own requestAnimationFrame in core; the host scheduler owns the frame loop.
+7. V0.1 does not implement full character customization; the current runtime targets the reference head and manifest-driven facial morph bindings.
+8. V0.1 does not implement a complete asset cache or a shared renderer/context for multiple avatar instances.
+9. V0.1 does not implement automatic throttling or automated rendering quality tiers.
+10. V0.1 does not include browser visual/GPU performance release gates or the Studio UI.
+
 ## 2. Product boundaries
 
 ENGINE
