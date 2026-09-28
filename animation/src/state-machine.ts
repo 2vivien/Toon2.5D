@@ -1,3 +1,4 @@
+import {sample} from "./interpolate.js";
 import type {Clip} from "./types.js";
 import type {ExpressionContribution,ExpressionSource} from "@toon2.5d/core";
 
