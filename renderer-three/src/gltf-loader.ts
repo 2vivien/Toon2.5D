@@ -3,7 +3,7 @@ import {GLTFLoader,type GLTF}from"three/examples/jsm/loaders/GLTFLoader.js";
 import {DRACOLoader}from"three/examples/jsm/loaders/DRACOLoader.js";
 import {KTX2Loader}from"three/examples/jsm/loaders/KTX2Loader.js";
 import {MeshoptDecoder}from"three/examples/jsm/libs/meshopt_decoder.module.js";
-import type {AssetLoadLimits}from"@toon2.5d/core";
+import type {AssetLoadLimits,RuntimeAsset}from"@toon2.5d/core";
 import {createAssetCache}from"@toon2.5d/assets";
 
 const glbCache=createAssetCache<ArrayBuffer>(async(asset)=>{
