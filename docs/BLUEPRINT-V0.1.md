@@ -146,10 +146,10 @@ Emotion contributions are additive and are composed with independent blink, lip-
 
 Current evaluation order:
 
-1. Emotion
-2. LipSync
-3. Blink
-4. LookAt
+1. LookAt
+2. Emotion
+3. LipSync
+4. Blink
 5. Animation/custom sources
 6. External overrides
 7. Composition
