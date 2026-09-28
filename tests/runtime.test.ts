@@ -47,7 +47,7 @@ describe("runtime",()=>{
     const target=renderer();
     const runtime=createRuntime({schemaVersion:1,assetId:"head.reference",expressionProfileId:"toon.face.v1"},target,{assetResolver:{resolve:id=>id==="head.reference"?{id,version:"1",uri:"https://cdn.example.test/head.glb",morphBindings:[]}:undefined}});
     await runtime.loadById("head.reference");
-    expect(target.loadAsset).toHaveBeenCalledWith({id:"head.reference",version:"1",uri:"https://cdn.example.test/head.glb",morphBindings:[]});
+    expect(target.loadAsset).toHaveBeenCalledWith({id:"test"},{id:"head.reference",version:"1",uri:"https://cdn.example.test/head.glb",morphBindings:[]});
   });
 
 });
