@@ -4,7 +4,7 @@ import {emotionSource,type EmotionId}from"./emotion.js";
 import {blinkSource}from"./blink.js";
 import {lookAtSource}from"./look-at.js";
 import {lipSyncSource,type LipSyncState}from"./lipsync.js";
-import type {ExpressionContext,ExpressionSource}from"./types.js";
+import type {ExpressionContext,ExpressionContribution,ExpressionSource}from"./types.js";
 import type {FaceWeights,Vec3}from"../types.js";
 
 export interface ExpressionController{
@@ -32,11 +32,12 @@ export function createExpressionController():ExpressionController{
     removeSource(id){custom.delete(id);},
     evaluate(context){
       const frame={...context,lookTarget:target};
-      const contributions=[];
-      const sources:readonly ExpressionSource[]=[
-        emotionSource({id:emotionId,intensity}),lipSyncSource(()=>lipState),blink,look,...custom.values()
+      const contributions:ExpressionContribution[]=[];
+      const builtins:readonly ExpressionSource[]=[
+        emotionSource({id:emotionId,intensity}),lipSyncSource(()=>lipState),blink,look
       ];
-      for(const source of sources)for(const contribution of source.evaluate(frame))contributions.push(contribution);
+      for(const source of builtins)for(const contribution of source.evaluate(frame))contributions.push(contribution);
+      for(const source of custom.values())for(const contribution of source.evaluate(frame))contributions.push(contribution);
       return applyFaceConstraints(compose(contributions));
     }
   };
