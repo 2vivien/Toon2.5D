@@ -26,6 +26,7 @@ describe("asset registry",()=>{
     registry.register(hardened);
     expect(registry.resolve("head.reference")).toMatchObject({integrity:"sha256-YWJjZA==",trustedOrigins:["https://cdn.example.test"],limits:{maxBytes:1048576},rig:{headBone:"Head"}});
   });
+  it("resolves first-class texture assets",()=>{const registry=createAssetRegistry();const texture={schemaVersion:1,id:"hair.texture",version:"1.0.0",uri:"https://cdn.example.test/hair.webp",mime:"image/webp",anchors:[],expressionProfile:undefined,limits:{maxBytes:1024,maxTexturePixels:4096}} as unknown as AssetManifest;registry.register(texture);expect(registry.resolveTexture("hair.texture")).toMatchObject({id:"hair.texture",uri:"https://cdn.example.test/hair.webp",limits:{maxBytes:1024,maxTexturePixels:4096}})});
   it("rejects invalid integrity and insecure trusted origins",()=>{
     expect(()=>validateManifest({...manifest,integrity:"md5-nope"})).toThrow();
     expect(()=>validateManifest({...manifest,trustedOrigins:["http://evil.example"]})).toThrow();
