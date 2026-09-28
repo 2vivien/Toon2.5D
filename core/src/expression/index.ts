@@ -6,3 +6,4 @@ export * from "./look-at.js";
 export * from "./lipsync.js";
 export * from "./constraints.js";
 export * from "./controller.js";
+export * from "./external.js";
