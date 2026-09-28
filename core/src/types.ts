@@ -30,7 +30,8 @@ export interface MorphBinding{
   readonly materials?:readonly string[];
 }
 export interface ExpressionProfile{readonly id:string;readonly version:1;readonly morphBindings:readonly MorphBinding[]}
-export interface AssetRig{readonly headBone:string;readonly leftEyeBone:string;readonly rightEyeBone:string}\nexport interface AssetLoadLimits{
+export interface AssetRig{readonly headBone:string;readonly leftEyeBone:string;readonly rightEyeBone:string}
+export interface AssetLoadLimits{
   readonly maxBytes?:number;
   readonly maxTexturePixels?:number;
   readonly maxVertices?:number;
@@ -43,6 +44,7 @@ export interface RuntimeAsset{
   readonly morphBindings:readonly MorphBinding[];
   readonly integrity?:string;
   readonly trustedOrigins?:readonly string[];
-  readonly limits?:AssetLoadLimits;\n  readonly rig?:AssetRig;
+  readonly limits?:AssetLoadLimits;
+  readonly rig?:AssetRig;
 }
 export type AvatarDefinition=Readonly<{schemaVersion:1;assetId:string;expressionProfileId:string;character?:import("./character.js").CharacterDefinition}>;
