@@ -37,6 +37,7 @@ export interface AssetLoadLimits{
   readonly maxVertices?:number;
   readonly maxAnimations?:number;
 }
+export interface RuntimeTextureAsset{readonly id:string;readonly version?:string;readonly uri:string;readonly integrity?:string;readonly trustedOrigins?:readonly string[];readonly limits?:Pick<AssetLoadLimits,"maxBytes"|"maxTexturePixels">}
 export interface RuntimeAsset{
   readonly id?:string;
   readonly version?:string;
