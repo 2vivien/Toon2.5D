@@ -21,6 +21,7 @@ jobs:
       - run: pnpm -r --sort build
       - run: pnpm -r --sort typecheck
       - run: pnpm test
+      - run: pnpm docs:check
 
   asset-reference:
     runs-on: ubuntu-latest
