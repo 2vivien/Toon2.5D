@@ -19,6 +19,9 @@ export interface AvatarRuntime{
   clearFaceWeights():void;
   pause():void;
   resume():void;
+  setPerspectiveCamera(camera:import("./camera.js").PerspectiveCameraState):void;
+  setLookAtPose(pose:import("./look-at.js").LookAtPose):void;
+  applyCustomization(customization:import("./customization.js").CharacterCustomization):Promise<void>;
   destroy():void;
 }
 
@@ -63,6 +66,9 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer):Ava
     clearFaceWeights(){expression.clearExternalWeights();},
     pause(){if(status==="ready")status="paused";},
     resume(){if(status==="paused")status="ready";},
+    setPerspectiveCamera(camera){if(renderer.setPerspectiveCamera)renderer.setPerspectiveCamera(scene,camera);},
+    setLookAtPose(pose){if(renderer.setLookAtPose)renderer.setLookAtPose(scene,pose);},
+    async applyCustomization(customization){if(renderer.applyCustomization)await renderer.applyCustomization(scene,customization);else throw new ToonCoreError("INVALID_LIFECYCLE","Renderer does not support character customization.");},
     destroy(){if(status==="disposed")return;loadGeneration++;renderer.dispose(scene);status="disposed";}
   };
 }
