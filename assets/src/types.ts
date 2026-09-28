@@ -8,5 +8,8 @@ export interface AssetManifest{
   readonly mime:"model/gltf-binary";
   readonly integrity?:string;
   readonly expressionProfile:ExpressionProfile;
-  readonly anchors:readonly string[];\n  readonly rig?:AssetRig;\n  readonly limits?:AssetLoadLimits;\n  readonly trustedOrigins?:readonly string[];
+  readonly anchors:readonly string[];
+  readonly rig?:AssetRig;
+  readonly limits?:AssetLoadLimits;
+  readonly trustedOrigins?:readonly string[];
 }
