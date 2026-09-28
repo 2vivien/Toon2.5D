@@ -37,7 +37,7 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer):Ava
       const generation=++loadGeneration;
       status="loading";
       try{await renderer.loadAsset(scene,asset);}
-      catch{if(generation===loadGeneration)status="created";throw new ToonCoreError("INVALID_DEFINITION","Avatar asset loading failed.");}
+      catch{if(generation===loadGeneration)status="ready";throw new ToonCoreError("INVALID_DEFINITION","Avatar asset loading failed.");}
       if(generation===loadGeneration&&status!=="disposed")status="ready";
     },
     update(deltaSeconds){
