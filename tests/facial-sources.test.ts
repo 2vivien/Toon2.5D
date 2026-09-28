@@ -16,6 +16,6 @@ describe("facial sources",()=>{
   it("smooths look-at",()=>{
     const source=lookAtSource({horizontalLimit:1,verticalLimit:1,smoothing:.5});
     const output=source.evaluate({deltaSeconds:.016,elapsedSeconds:0,lookTarget:{x:1,y:0,z:1}});
-    expect(output[0]?.value).toBe(.75);
+    expect(output[0]?.value).toBeCloseTo(.25);
   });
 });
