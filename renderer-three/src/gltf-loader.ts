@@ -66,14 +66,21 @@ function validateComplexity(gltf:GLTF,limits:AssetLoadLimits):void{
 export async function loadGLTF(url:string,options:GLTFLoadOptions={}):Promise<GLTF>{
   validateOrigin(url,options.trustedOrigins);
   const fetcher=options.fetchImpl??fetch;
-  const response=await fetcher(url,{credentials:"omit"});
-  if(!response.ok)throw new Error(`Asset request failed: ${response.status} ${response.statusText}`);
-  const declared=response.headers.get("content-length");
-  const maxBytes=options.maxBytes;
-  if(maxBytes!==undefined&&declared&&Number(declared)>maxBytes)throw new Error("Asset exceeds configured byte-size limit.");
-  const data=await response.arrayBuffer();
-  if(maxBytes!==undefined&&data.byteLength>maxBytes)throw new Error("Asset exceeds configured byte-size limit.");
+  const cached=options.fetchImpl?undefined:glbCache.get(url);
+  let data=cached;
+  if(!data){
+    const response=await fetcher(url,{credentials:"omit"});
+    if(!response.ok)throw new Error(`Asset request failed: ${response.status} ${response.statusText}`);
+    const declared=response.headers.get("content-length");
+    const maxBytes=options.maxBytes;
+    if(maxBytes!==undefined&&declared&&Number(declared)>maxBytes)throw new Error("Asset exceeds configured byte-size limit.");
+    data=await response.arrayBuffer();
+    if(maxBytes!==undefined&&data.byteLength>maxBytes)throw new Error("Asset exceeds configured byte-size limit.");
+    if(!options.fetchImpl)glbCache.set(url,data,data.byteLength);
+  }
+  if(options.maxBytes!==undefined&&data.byteLength>options.maxBytes)throw new Error("Asset exceeds configured byte-size limit.");
   validateGLB(data);
+  await verifyIntegrity(data,options.integrity);
   await verifyIntegrity(data,options.integrity);
   const loader=new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
