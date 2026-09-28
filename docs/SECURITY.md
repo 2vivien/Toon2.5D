@@ -29,7 +29,7 @@ Protect against:
 - malformed manifests;
 - repeated failed loading loops.
 
-These are threat-model requirements; not every limit is currently enforced by the V0 runtime.
+These limits are enforced at the GLB loader boundary when configured by the asset manifest.
 
 ## Browser isolation
 
