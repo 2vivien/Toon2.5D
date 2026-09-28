@@ -56,4 +56,15 @@ describe("runtime",()=>{
     const runtime=createRuntime({schemaVersion:1,assetId:"head.reference",expressionProfileId:"toon.face.v1"},target);
     await expect(runtime.applyCustomization({selections:{body:null,face:null,skin:null,hair:null,eyes:null,brows:null,nose:null,mouth:null,top:null,bottom:null,shoes:null,accessory:null},items:[{id:"hair",slot:"hair",assetUri:"https://cdn.example.test/hair.glb"}]})).rejects.toThrow("stable Asset IDs");
   });
+  it("resolves CharacterDefinition model textures colors and accessories",async()=>{
+    const target=renderer();
+    const runtime=createRuntime({schemaVersion:1,assetId:"head.reference",expressionProfileId:"toon.face.v1"},target,{assetResolver:{
+      resolve:id=>id==="hair.curly"?{id,version:"1",uri:"https://cdn.example.test/hair.glb",morphBindings:[]}:undefined,
+      resolveTexture:id=>id==="hair.texture"?{id,version:"1",uri:"https://cdn.example.test/hair.webp",integrity:"sha256-YWJjZA==",trustedOrigins:["https://cdn.example.test"],limits:{maxBytes:2048,maxTexturePixels:4096}}:undefined
+    }});
+    await runtime.applyCharacter({version:1,model:"avatar.base",hair:{assetId:"hair.curly",textureId:"hair.texture"},colors:{hair:"#112233"},accessories:[{assetId:"hair.curly"}]});
+    expect(target.applyCustomization).toHaveBeenCalledWith({id:"test"},expect.objectContaining({colors:{hair:"#112233"}}));
+    const customization=target.applyCustomization.mock.calls[0]?.[1] as {items:Array<{textureId?:string;textureIntegrity?:string}>};
+    expect(customization.items.some(item=>item.textureId==="hair.texture"&&item.textureIntegrity==="sha256-YWJjZA==")).toBe(true);
+  });
 });
