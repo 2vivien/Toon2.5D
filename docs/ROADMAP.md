@@ -1,6 +1,6 @@
 # Roadmap
 
-## Phase 0 — Architecture
+## Phase 0 — Architecture — substantially complete
 
 - repository standards
 - package boundaries
@@ -9,55 +9,96 @@
 - asset manifest
 - mathematical conventions
 - performance budgets
+- research and architectural decisions
 
-## Phase 1 — Minimal Runtime
+## Phase 1 — Minimal Runtime — complete for V0
 
 - runtime lifecycle
-- scene graph
-- camera
+- renderer scene ownership
+- orthographic camera
 - Three.js renderer
-- resource ownership
+- resource disposal
 - resize/dispose
 
-## Phase 2 — First Head
+## Phase 2 — First Head — in progress
 
-- base head GLB
-- skin material
-- eyes
-- mouth
-- hair
-- accessories
-- avatar definition resolver
+- deterministic reference head GLB
+- 52 semantic facial morphs
+- skin, eyes and mouth fallback
+- asset manifest resolver
+- GLB morph binding
+- production customization composition
 
-## Phase 3 — Face Runtime
+Hair/accessory composition and the full character definition resolver remain future work.
 
-- blendshapes
-- expression controller
+## Phase 3 — Face Runtime — substantially complete
+
+- semantic facial contract
+- expression composer
+- emotion
 - blink
+- lip-sync
 - look-at
-- head rotation
+- external overrides
+- facial constraints
+- renderer morph application
 
-## Phase 4 — Animation
+Dedicated head-pose/look-at bones remain future work.
 
-- timeline
+## Phase 4 — Animation — partially complete
+
+Implemented:
+
+- keyframes
+- deterministic AnimationPlayer
+- interpolation
+- looping
+- ExpressionSource adapter
+
+Remaining:
+
+- runtime integration examples
 - state machine
-- blending
-- idle
-- expression transitions
+- transitions
+- crossfading
+- multi-clip blending
+- animation events
+- idle/head-pose animation
 
-## Phase 5 — React
+## Phase 5 — React — foundation complete
+
+Implemented:
 
 - React adapter
+- canvas lifecycle
+- runtime scheduling
+- deterministic cleanup
+
+Remaining:
+
 - Next.js example
 - browser integration tests
+- shared renderer/context
+- visibility throttling
+- richer prop facade
 
-## Phase 6 — Performance
+## Phase 6 — Performance — foundation in place
+
+Implemented:
+
+- reusable expression buffers
+- deterministic animation buffers
+- asset compression support
+- reference asset generation/validation
+- benchmark scaffold
+
+Remaining:
 
 - shared renderer
-- cache
-- asset compression
+- asset cache
 - quality tiers
-- benchmark suite
+- browser/GPU regression gates
+- many-avatar benchmarks
 
 ## Phase 7 — Studio
 
@@ -83,4 +124,4 @@ Future adapters may include React Native or WebGPU.
 
 ## Release philosophy
 
-Do not publish a public stable API before the first vertical slice is working and benchmarked.
+Do not publish a public stable API before the first end-to-end vertical slice is working, browser-tested and benchmarked.
