@@ -4,7 +4,7 @@
 
 Blender -> model/retopology/UV/materials/rig/morph targets/animation -> GLB -> validation -> optimization -> manifest -> CDN or application bundle.
 
-## V0 model contract
+## V1 reference asset contract
 
 The reference head defines:
 
