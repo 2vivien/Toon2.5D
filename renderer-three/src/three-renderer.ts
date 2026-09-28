@@ -74,7 +74,7 @@ export class ThreeRenderer implements Renderer{
     mouth.scale.set(1,.35,.3);
     root.add(head,leftEye,rightEye,mouth);
     this.scene.add(root);
-    const slots=new Map<string,THREE.Group>();for(const slot of ["body","hair","top","bottom","shoes","accessory","head","texture"])slots.set(slot,new THREE.Group());slots.forEach(group=>root.add(group));const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots,customizationMorphs:{},camera,perspectiveCamera,animations:[]};
+    const slots=new Map<string,THREE.Group>();for(const slot of ["body","face","skin","hair","eyes","brows","nose","mouth","top","bottom","shoes","accessory"])slots.set(slot,new THREE.Group());slots.forEach(group=>root.add(group));const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots,customizationMorphs:{},camera,perspectiveCamera,animations:[]};
     this.scenes.set(avatar.id,avatar);
     return avatar;
   }
