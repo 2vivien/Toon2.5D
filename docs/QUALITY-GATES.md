@@ -40,7 +40,7 @@ Before a release can be considered stable:
 ## Performance
 
 - benchmark representative head
-- record startup/load/render metrics
+- record startup/load/render/multi-avatar/memory/quality-adaptation metrics
 - no unexplained regression beyond project budget
 
 ## Packaging
