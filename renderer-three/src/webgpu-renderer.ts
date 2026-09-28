@@ -1,3 +1,4 @@
+import {createAssetCache}from"@toon2.5d/assets";
 import * as THREE from "three";
 import{WebGPURenderer}from"three/webgpu";
 import{loadGLTF}from"./gltf-loader.js";
