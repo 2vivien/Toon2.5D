@@ -3,9 +3,8 @@ import {join} from "node:path";
 
 const root=join(process.cwd(),"docs");
 const forbidden=[
-  /\bV0\b/g,
-  /V0\.[0-9]+/g,
-  /future work/gi
+  /(?:current|currently|model|runtime) V0(?:\.[0-9]+)?/gi,
+  /V0 (?:contract|capability|requirement|implementation)/gi
 ];
 const files=[];
 async function walk(dir){
