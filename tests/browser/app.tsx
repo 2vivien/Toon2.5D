@@ -1,0 +1,1 @@
+import React from "react";import{createRoot}from"react-dom/client";import{Studio}from"@toon2.5d/studio";import type{AvatarDefinition}from"@toon2.5d/core";const character:AvatarDefinition={schemaVersion:1,assetId:"head.reference",expressionProfileId:"toon.face.v1"};createRoot(document.getElementById("root")!).render(<Studio character={character} width={320} height={320}/>);
