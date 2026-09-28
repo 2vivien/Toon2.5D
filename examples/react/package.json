@@ -1,0 +1,6 @@
+{
+  "name":"@toon2.5d/example-react",
+  "private":true,
+  "type":"module",
+  "dependencies":{"@toon2.5d/react":"workspace:*","react":"^19.1.1","react-dom":"^19.1.1"}
+}
