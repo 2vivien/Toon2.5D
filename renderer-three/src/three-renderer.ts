@@ -2,7 +2,7 @@ import * as THREE from "three";
 import {loadGLTF}from"./gltf-loader.js";
 import {createFallbackAvatar}from"./fallback.js";
 import {applyMorphWeights,collectMorphBindings,findMissingMorphParameters,type MorphBindingMap}from"./morphs.js";
-import type {FaceWeights,Renderer,RendererScene,Transform,CharacterCustomization,PerspectiveCameraState,LookAtPose,QualityTier}from"@toon2.5d/core";
+import type {FaceWeights,Renderer,RendererScene,Transform,CharacterCustomization,PerspectiveCameraState,LookAtPose,QualityTier,RuntimeAsset}from"@toon2.5d/core";
 
 interface AvatarScene extends RendererScene{
   readonly root:THREE.Group;
@@ -76,11 +76,11 @@ export class ThreeRenderer implements Renderer{
     return eye;
   }
 
-  async loadAsset(scene:RendererScene,asset:{readonly uri:string;readonly morphBindings:readonly RendererMorphBinding[]}):Promise<void>{
+  async loadAsset(scene:RendererScene,asset:RuntimeAsset):Promise<void>{
     await this.loadModel(scene,asset.uri,asset.morphBindings,asset);
   }
 
-  async loadModel(scene:RendererScene,url:string,mappings:readonly RendererMorphBinding[]=[],asset?:{readonly maxBytes?:number;readonly maxTexturePixels?:number;readonly maxVertices?:number;readonly maxAnimations?:number;readonly limits?:{readonly maxBytes?:number;readonly maxTexturePixels?:number;readonly maxVertices?:number;readonly maxAnimations?:number};readonly trustedOrigins?:readonly string[];readonly integrity?:string;readonly rig?:{readonly headBone:string;readonly leftEyeBone:string;readonly rightEyeBone:string}}):Promise<void>{
+  async loadModel(scene:RendererScene,url:string,mappings:readonly RendererMorphBinding[]=[],asset?:RuntimeAsset):Promise<void>{
     const avatar=this.requireScene(scene);
     const gltf=await loadGLTF(url,{renderer:this.renderer,maxBytes:asset?.limits?.maxBytes??asset?.maxBytes,maxTexturePixels:asset?.limits?.maxTexturePixels??asset?.maxTexturePixels,maxVertices:asset?.limits?.maxVertices??asset?.maxVertices,maxAnimations:asset?.limits?.maxAnimations??asset?.maxAnimations,trustedOrigins:asset?.trustedOrigins,integrity:asset?.integrity});
     if(this.scenes.get(scene.id)!==avatar){
@@ -106,7 +106,7 @@ export class ThreeRenderer implements Renderer{
     avatar.mixer=new THREE.AnimationMixer(gltf.scene);
     avatar.animations=[...gltf.animations];
     avatar.morphBindings=morphBindings;
-    avatar.rig=asset?.rig;
+    if(asset?.rig)avatar.rig=asset.rig;else delete avatar.rig;
   }
 
   update(deltaSeconds:number):void{if(!Number.isFinite(deltaSeconds)||deltaSeconds<0)return;for(const avatar of this.scenes.values())avatar.mixer?.update(deltaSeconds)}
