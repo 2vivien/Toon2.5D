@@ -17,5 +17,6 @@ describe("asset registry",()=>{
     const registry=createAssetRegistry();
     registry.register(manifest);
     expect(registry.get("head.reference")?.version).toBe("0.1.0");
+    expect(registry.resolve("head.reference")?.uri).toContain("head.reference.glb");
   });
 });
