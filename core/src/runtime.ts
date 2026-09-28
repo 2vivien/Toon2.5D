@@ -13,8 +13,10 @@ export interface AvatarRuntime{
   load(asset:RuntimeAsset):Promise<void>;
   update(deltaSeconds:number):void;
   render():void;
+  resize(width:number,height:number):void;
   setLookAt(target:Vec3):void;
   setFaceWeights(weights:Partial<FaceWeights>):void;
+  clearFaceWeights():void;
   pause():void;
   resume():void;
   destroy():void;
@@ -51,8 +53,13 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer):Ava
       renderer.setFaceWeights(scene,face);
       renderer.render(scene);
     },
+    resize(width,height){
+      if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)throw new ToonCoreError("INVALID_NUMBER","Renderer dimensions must be positive and finite.");
+      renderer.resize(width,height);
+    },
     setLookAt(target){expression.setLookTarget(target);},
-    setFaceWeights(weights){face={...face,...weights};},
+    setFaceWeights(weights){expression.setExternalWeights(weights);},
+    clearFaceWeights(){expression.clearExternalWeights();},
     pause(){if(status==="ready")status="paused";},
     resume(){if(status==="paused")status="ready";},
     destroy(){if(status==="disposed")return;loadGeneration++;renderer.dispose(scene);status="disposed";}
