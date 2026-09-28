@@ -55,7 +55,7 @@ const attachment = attachAnimation(avatar, player);
 attachment.detach();
 ```
 
-The current player supports deterministic single-clip playback. State machines, crossfading and multi-clip blending are not yet part of V0.
+The attachment advances the player from the runtime delta on each update. The current player supports deterministic single-clip playback. State machines, crossfading and multi-clip blending are not yet part of V0.
 
 ## React adapter
 
