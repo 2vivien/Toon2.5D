@@ -3,7 +3,8 @@ import type {ExpressionContribution,ExpressionContext,ExpressionSource}from"./ty
 
 export type EmotionId="neutral"|"happy"|"sad"|"angry"|"surprised"|"fearful"|"disgusted"|"relaxed";
 export interface EmotionState{readonly id:EmotionId;readonly intensity:number}
-type Pair=readonly [ExpressionContribution["parameter"],number];
+type Pair=readonly[ExpressionContribution["parameter"],number];
+interface MutableContribution{source:"emotion";parameter:ExpressionContribution["parameter"];value:number;weight:number;priority:20;mode:"add"}
 
 const PRESETS:Readonly<Record<EmotionId,readonly Pair[]>>={
   neutral:[],
@@ -16,14 +17,13 @@ const PRESETS:Readonly<Record<EmotionId,readonly Pair[]>>={
   relaxed:[["eyeSquintLeft",.05],["eyeSquintRight",.05],["mouthSmileLeft",.1],["mouthSmileRight",.1]]
 };
 
-export interface EmotionSource extends ExpressionSource{
-  setEmotion(id:EmotionId,intensity:number):void;
-}
+export interface EmotionSource extends ExpressionSource{setEmotion(id:EmotionId,intensity:number):void}
 
 export function createEmotionSource():EmotionSource{
   let current:EmotionState={id:"neutral",intensity:1};
   let previous=current;
   let progress=1;
+  const contributions:MutableContribution[]=[];
   return{
     id:"emotion",
     setEmotion(id,intensity){previous=current;current={id,intensity:clamp01(intensity)};progress=0;},
@@ -31,7 +31,7 @@ export function createEmotionSource():EmotionSource{
       progress=clamp01(progress+context.deltaSeconds/.18);
       const previousWeight=(1-progress)*previous.intensity;
       const currentWeight=progress*current.intensity;
-      const contributions:ExpressionContribution[]=[];
+      contributions.length=0;
       for(const [parameter,value]of PRESETS[previous.id])if(previousWeight>0)contributions.push({source:"emotion",parameter,value,weight:previousWeight,priority:20,mode:"add"});
       for(const [parameter,value]of PRESETS[current.id])if(currentWeight>0)contributions.push({source:"emotion",parameter,value,weight:currentWeight,priority:20,mode:"add"});
       return contributions;
