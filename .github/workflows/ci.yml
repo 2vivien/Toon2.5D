@@ -21,3 +21,20 @@ jobs:
       - run: pnpm -r --sort build
       - run: pnpm -r --sort typecheck
       - run: pnpm test
+
+  asset-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender
+      - name: Generate reference GLB
+        run: blender --background --python assets/tools/build_reference_head.py
+      - name: Publish reference GLB
+        uses: actions/upload-artifact@v4
+        with:
+          name: toon2.5d-reference-head
+          path: assets/generated/head.reference.glb
+          if-no-files-found: error
