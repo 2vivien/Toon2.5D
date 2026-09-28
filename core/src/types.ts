@@ -5,7 +5,8 @@ export type FaceParameter =
   | "cheekRaiseLeft" | "cheekRaiseRight" | "cheekPuff" | "noseWrinkle"
   | "eyeLookHorizontal" | "eyeLookVertical";
 
-export type FaceWeights=Readonly<Record<FaceParameter,number>>;
+export type MutableFaceWeights=Record<FaceParameter,number>;
+export type FaceWeights=Readonly<MutableFaceWeights>;
 export type Vec3=Readonly<{x:number;y:number;z:number}>;
 export type Quaternion=Readonly<{x:number;y:number;z:number;w:number}>;
 export type Transform=Readonly<{position:Vec3;rotation:Quaternion;scale:Vec3}>;
