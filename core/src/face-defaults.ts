@@ -1,6 +1,6 @@
-import type {FaceWeights}from"./types.js";
+import type {FaceParameter,FaceWeights}from"./types.js";
 
-export const FACE_PARAMETERS:readonly string[]=[
+export const FACE_PARAMETERS:readonly FaceParameter[]=[
   "mouthSmile","mouthOpen","mouthFrown","mouthPucker","mouthStretch","jawOpen",
   "eyeBlinkLeft","eyeBlinkRight","eyeSquintLeft","eyeSquintRight","browRaiseLeft",
   "browRaiseRight","browFurrowLeft","browFurrowRight","cheekRaiseLeft",
