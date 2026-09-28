@@ -1,82 +1,25 @@
-# Rendering Architecture
+# Rendering
 
-## Rendering philosophy
+## Cameras
 
-The engine is technically 3D and visually stylized/2.5D.
+ThreeRenderer supports both orthographic and perspective cameras. Perspective state validates FOV, aspect and clipping planes and updates the projection matrix.
 
-We want real depth, real perspective where supported, real occlusion, real lighting and real head rotation while maintaining a clean cartoon visual language.
+## LookAt
 
-## Current V0 pipeline
+LookAt computes constrained yaw/pitch with exponential damping. The renderer applies dedicated Head, Eye.L and Eye.R quaternions when those nodes exist and retains semantic eye-gaze weights as a fallback.
 
-```
-Semantic face state
-   -> Renderer scene
-   -> Three.js objects
-   -> Orthographic camera
-   -> Materials
-   -> Lights
-   -> WebGL renderer
-   -> Frame
-```
+## Morph targets
 
-## Camera
+Semantic face parameters are mapped to GLB morph targets through manifest bindings. Missing required bindings reject the asset before attachment.
 
-V0 implements an orthographic camera only.
+## Lifecycle
 
-Perspective camera support is a future renderer capability. Applications should not manipulate Three.js cameras directly.
+Every renderer scene owns its instance resources. Replaced or rejected GLB scenes, customization meshes, textures and materials are disposed. Destroying a renderer disposes all remaining scenes and the renderer context.
 
-## Lighting
+## Shared renderer
 
-The current renderer uses a hemisphere light and a directional key light. Dedicated fill/rim lighting controls remain future capabilities.
+SharedThreeRenderer uses one Three.js context for multiple scenes. Runtime render calls register scenes; the host calls renderFrame once per frame.
 
-## Materials
+## WebGPU
 
-Prefer a small material vocabulary:
-
-- skin
-- hair
-- eye
-- cloth
-- accessory
-- transparent/detail
-
-Avoid dozens of unique materials because material count affects rendering overhead.
-
-## Depth
-
-Depth comes from actual 3D geometry and hierarchy. Do not simulate all depth with arbitrary z-index values.
-
-## Rendering modes
-
-V0:
-- WebGL through Three.js.
-
-Implemented:
-- perspective camera path with dynamic projection updates;
-- shared renderer frame coordination;
-- adaptive renderer pixel-ratio quality tiers.
-
-Future:
-- WebGPU adapter;
-- instancing where asset topology permits.
-
-## Resize
-
-The renderer exposes explicit resize(width, height). The runtime forwards validated dimensions to the renderer.
-
-## Render loop
-
-The render loop is owned by the host runtime adapter, not React state.
-
-```
-requestAnimationFrame
-  -> compute dt
-  -> update
-  -> render
-```
-
-The loop must stop when the adapter is disposed.
-
-## Look-at
-
-The current renderer maps semantic eye look parameters to a limited root rotation approximation. A dedicated head-pose and humanoid look-at system is future work.
+WebGPURenderer is available as an independent adapter. Three.js documents WebGPU as a universal renderer with WebGL2 fallback when supported.
