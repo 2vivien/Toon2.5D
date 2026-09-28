@@ -40,7 +40,7 @@ Owns domain state, deterministic expression logic, runtime lifecycle and rendere
 Owns conversion from runtime state to GPU representation.
 
 ### Asset layer
-Owns manifests, validation, logical asset resolution and future cache/lifecycle services. The current registry is a manifest registry and resolver, not yet a complete asynchronous cache.
+Owns manifests, validation, logical asset resolution and future cache/lifecycle services. The asset layer provides manifests, validation, registry/resolver contracts and a byte-budget cache used by the renderer asset loader.
 
 ### Animation
 Owns deterministic keyframe playback and converts animation output into the core ExpressionSource contract. Runtime integration is performed by the host application.
@@ -68,7 +68,7 @@ Every GPU resource must have an owner and a release path. Shared resources use e
 
 ## 5. Scene representation
 
-The current V0 scene is renderer-owned. The core package exposes renderer contracts rather than a Three.js scene graph. The documented AvatarRoot hierarchy is the canonical conceptual structure for future richer character composition.
+The V1 scene is renderer-owned. The core package exposes renderer contracts rather than a Three.js scene graph, while each renderer scene owns its camera, rig metadata, animation state and customization slots.
 
 ## 6. Data flow
 
@@ -102,7 +102,7 @@ Animation enters through the same ExpressionSource boundary and does not require
 
 ## 7. Threading
 
-V0 uses the main thread. Asset decoding, serialization and future worker work must remain isolated from core contracts so OffscreenCanvas/worker rendering can be introduced later without changing avatar definitions.
+V1 uses the main thread for the web renderer. Asset decoding, serialization and future worker work remains isolated from core contracts so OffscreenCanvas/worker rendering can be introduced later without changing avatar definitions.
 
 ## 8. Error policy
 
