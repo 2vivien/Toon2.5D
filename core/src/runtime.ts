@@ -38,7 +38,7 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer):Ava
       status="loading";
       try{await renderer.loadAsset(scene,asset);}
       catch{if(generation===loadGeneration)status="ready";throw new ToonCoreError("INVALID_DEFINITION","Avatar asset loading failed.");}
-      if(generation===loadGeneration&&status!=="disposed")status="ready";
+      if(generation===loadGeneration)status="ready";
     },
     update(deltaSeconds){
       if(!Number.isFinite(deltaSeconds)||deltaSeconds<0)throw new ToonCoreError("INVALID_NUMBER","Delta time must be finite and non-negative.");
