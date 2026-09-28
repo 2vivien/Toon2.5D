@@ -32,7 +32,7 @@ describe("expression controller",()=>{
 
   it("keeps explicit overrides across evaluations",()=>{
     const controller=createExpressionController();
-    controller.setFaceWeights?.({mouthSmileLeft:1});
+    controller.setExternalWeights({mouthSmileLeft:1});
     const face=controller.evaluate({deltaSeconds:.016,elapsedSeconds:.016,lookTarget:null});
     expect(face.mouthSmileLeft).toBe(1);
   });
