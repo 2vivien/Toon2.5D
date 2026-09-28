@@ -1,6 +1,6 @@
 # Project Structure
 
-The V0.1 pnpm workspace uses explicit root-level package directories.
+The V1 pnpm workspace uses explicit root-level package directories.
 
 ```
 Toon2.5D/
@@ -23,9 +23,9 @@ Toon2.5D/
 
 Core owns domain types, runtime state, scene contracts, expression control and lifecycle.
 
-Renderer-three owns Three.js, GPU resources, GLTF loading and rendering.
+Renderer-three owns Three.js, WebGL/WebGPU resources, GLTF loading, renderer parity and rendering.
 
-Assets owns manifests, validation, asset identity and registry contracts.
+Assets owns manifests, validation, asset identity, registry/resolver contracts and cache primitives.
 
 Animation owns timelines, interpolation, playback and expression-source adaptation.
 
