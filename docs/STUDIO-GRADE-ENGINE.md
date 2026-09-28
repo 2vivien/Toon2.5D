@@ -39,6 +39,9 @@ CI runs:
 - real headless Chromium Studio render;
 - canvas output check;
 - frame-time p95 budget;
-- repeated-mount observable heap-growth check;\n- WebGL2 GPU timer signal when supported;\n- WebGL context-loss/restoration recovery;\n- documentation consistency check.
+- repeated-mount observable heap-growth check;
+- WebGL2 GPU timer signal when supported;
+- WebGL context-loss/restoration recovery;
+- documentation consistency check.
 
 These gates validate deterministic software behavior; they do not claim identical GPU performance across physical hardware.
