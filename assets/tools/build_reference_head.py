@@ -102,7 +102,7 @@ def build():
         export_animations=False,
         export_cameras=False,
         export_lights=False,
-        export_apply=True
+        export_apply=False
     )
     print(f"Toon2.5D reference head: {output}")
 
