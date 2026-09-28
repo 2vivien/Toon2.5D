@@ -38,6 +38,9 @@ export class ThreeRenderer implements Renderer{
   private readonly camera=new THREE.OrthographicCamera(-1,1,1,-1,.01,100);
   private readonly perspectiveCamera=new THREE.PerspectiveCamera(35,1,.01,100);
   private readonly scenes=new Map<string,AvatarScene>();
+  private contextLost=false;
+  private readonly onContextLost=(event:Event)=>{event.preventDefault();this.contextLost=true;};
+  private readonly onContextRestored=()=>{this.contextLost=false;this.renderer.resetState();for(const avatar of this.scenes.values())this.markResourcesDirty(avatar.root);};
 
   constructor(options:ThreeRendererOptions){
     this.renderer=new THREE.WebGLRenderer({canvas:options.canvas,antialias:true,alpha:true});
@@ -48,6 +51,8 @@ export class ThreeRenderer implements Renderer{
     this.scene.add(fill,key);
     this.camera.position.z=5;
     this.renderer.setPixelRatio(Math.min(options.pixelRatio??1.5,2));
+    options.canvas.addEventListener("webglcontextlost",this.onContextLost,false);
+    options.canvas.addEventListener("webglcontextrestored",this.onContextRestored,false);
   }
 
   createScene():RendererScene{
@@ -129,7 +134,7 @@ export class ThreeRenderer implements Renderer{
     avatar.root.rotation.x=(merged.eyeLookDownLeft-merged.eyeLookUpLeft)*.2;
   }
 
-  render(scene:RendererScene):void{const avatar=this.requireScene(scene);this.renderScene(avatar)}
+  render(scene:RendererScene):void{if(this.contextLost)return;const avatar=this.requireScene(scene);this.renderScene(avatar)}
   protected renderScene(avatar:AvatarScene):void{const camera=avatar.root.userData.cameraMode==="perspective"?this.perspectiveCamera:this.camera;this.renderer.render(this.scene,camera)}
   protected renderAll():void{this.renderer.render(this.scene,this.camera)}
 
@@ -178,8 +183,20 @@ export class ThreeRenderer implements Renderer{
   }
 
   destroy():void{
-    for(const scene of this.scenes.values())this.dispose(scene);
+    this.renderer.domElement.removeEventListener("webglcontextlost",this.onContextLost);
+    this.renderer.domElement.removeEventListener("webglcontextrestored",this.onContextRestored);
+    for(const scene of [...this.scenes.values()])this.dispose(scene);
     this.renderer.dispose();
+  }
+
+  get isContextLost():boolean{return this.contextLost;}
+
+  private markResourcesDirty(root:THREE.Object3D):void{
+    root.traverse(object=>{
+      if(!(object instanceof THREE.Mesh))return;
+      const materials=Array.isArray(object.material)?object.material:[object.material];
+      for(const material of materials){material.needsUpdate=true;for(const key of ["map","normalMap","roughnessMap","metalnessMap","emissiveMap","aoMap","alphaMap"]){const texture=material[key as keyof THREE.Material] as THREE.Texture|undefined;if(texture instanceof THREE.Texture)texture.needsUpdate=true;}}
+    });
   }
 
   private requireScene(scene:RendererScene):AvatarScene{
