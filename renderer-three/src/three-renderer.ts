@@ -82,6 +82,10 @@ export class ThreeRenderer implements Renderer{
   async loadModel(scene:RendererScene,url:string,mappings:readonly RendererMorphBinding[]=[]):Promise<void>{
     const avatar=this.requireScene(scene);
     const gltf=await loadGLTF(url,{renderer:this.renderer});
+    if(this.scenes.get(scene.id)!==avatar){
+      disposeObject(gltf.scene);
+      throw new Error("Renderer scene was disposed while the asset was loading.");
+    }
     const morphBindings=collectMorphBindings(gltf.scene,mappings);
     const missing=findMissingMorphParameters(morphBindings,mappings.map(mapping=>mapping.parameter));
     if(missing.length>0){
