@@ -62,7 +62,10 @@ export class ThreeRenderer implements Renderer{
   async loadModel(scene:RendererScene,url:string):Promise<void>{
     const avatar=this.requireScene(scene);
     const gltf=await loadGLTF(url,{renderer:this.renderer});
-    avatar.root.clear();
+    avatar.head.visible=false;
+    avatar.leftEye.visible=false;
+    avatar.rightEye.visible=false;
+    avatar.mouth.visible=false;
     avatar.root.add(gltf.scene);
     avatar.morphBindings=collectMorphBindings(gltf.scene);
   }
