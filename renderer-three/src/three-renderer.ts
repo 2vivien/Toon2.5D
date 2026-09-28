@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import {loadGLTF}from"./gltf-loader.js";
 import {applyMorphWeights,collectMorphBindings,findMissingMorphParameters,type MorphBindingMap}from"./morphs.js";
-import type {FaceWeights,Renderer,RendererScene,Transform,CharacterCustomization,PerspectiveCameraState,LookAtPose}from"@toon2.5d/core";
+import type {FaceWeights,Renderer,RendererScene,Transform,CharacterCustomization,PerspectiveCameraState,LookAtPose,QualityTier}from"@toon2.5d/core";
 
 interface AvatarScene extends RendererScene{
   readonly root:THREE.Group;
@@ -129,6 +129,8 @@ export class ThreeRenderer implements Renderer{
   }
 
   render(scene:RendererScene):void{const avatar=this.requireScene(scene);const camera=avatar.root.userData.cameraMode==="perspective"?this.perspectiveCamera:this.camera;this.renderer.render(this.scene,camera);}
+
+  setQuality(tier:QualityTier):void{const ratios:Record<QualityTier,number>={low:.75,medium:1,high:1.5,ultra:2};this.renderer.setPixelRatio(ratios[tier]);}
 
   setPerspectiveCamera(scene:RendererScene,camera:PerspectiveCameraState):void{const avatar=this.requireScene(scene);this.perspectiveCamera.fov=camera.fov;this.perspectiveCamera.aspect=camera.aspect;this.perspectiveCamera.near=camera.near;this.perspectiveCamera.far=camera.far;this.perspectiveCamera.updateProjectionMatrix();avatar.root.userData.cameraMode="perspective";}
 
