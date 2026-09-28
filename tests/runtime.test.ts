@@ -5,7 +5,7 @@ import type {Renderer}from"../core/src/renderer.js";
 function renderer():Renderer{
   return{
     createScene:()=>({id:"test"}),
-    loadAsset:async()=>undefined,
+    loadAsset:vi.fn(async()=>undefined),
     setAvatarTransform:()=>undefined,
     setFaceWeights:vi.fn(),
     render:vi.fn(),
