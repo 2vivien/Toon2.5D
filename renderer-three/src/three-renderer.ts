@@ -202,6 +202,17 @@ export class ThreeRenderer implements Renderer{
     });
   }
 
+  protected isSceneInView(scene:RendererScene):boolean{
+    const avatar=this.requireScene(scene);
+    const camera=avatar.root.userData.cameraMode==="perspective"?avatar.perspectiveCamera:avatar.camera;
+    const box=new THREE.Box3().setFromObject(avatar.root);
+    if(box.isEmpty())return true;
+    const frustum=new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse));
+    return frustum.intersectsBox(box);
+  }
+
+  protected getSceneRoot(scene:RendererScene):THREE.Object3D{return this.requireScene(scene).root}
+
   private requireScene(scene:RendererScene):AvatarScene{
     const avatar=this.scenes.get(scene.id);
     if(!avatar)throw new Error("Renderer scene is not owned by this renderer.");
