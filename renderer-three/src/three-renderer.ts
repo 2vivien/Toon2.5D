@@ -6,6 +6,7 @@ import type {FaceWeights,Renderer,RendererScene,Transform,CharacterCustomization
 
 interface AvatarScene extends RendererScene{
   readonly root:THREE.Group;
+  readonly scene:THREE.Scene;
   readonly head:THREE.Mesh;
   readonly leftEye:THREE.Mesh;
   readonly rightEye:THREE.Mesh;
@@ -40,7 +41,6 @@ function disposeObject(root:THREE.Object3D):void{
 
 export class ThreeRenderer implements Renderer{
   private readonly renderer:THREE.WebGLRenderer;
-  private readonly scene=new THREE.Scene();
   private readonly scenes=new Map<string,AvatarScene>();
   private contextLost=false;
   private readonly onContextLost=(event:Event)=>{event.preventDefault();this.contextLost=true;};
@@ -48,11 +48,6 @@ export class ThreeRenderer implements Renderer{
 
   constructor(options:ThreeRendererOptions){
     this.renderer=new THREE.WebGLRenderer({canvas:options.canvas,antialias:true,alpha:true});
-    this.scene.background=options.background===undefined?null:new THREE.Color(options.background);
-    const fill=new THREE.HemisphereLight(0xffffff,0x555555,1.4);
-    const key=new THREE.DirectionalLight(0xffffff,1.8);
-    key.position.set(2,3,4);
-    this.scene.add(fill,key);
     this.renderer.setPixelRatio(Math.min(options.pixelRatio??1.5,2));
     options.canvas.addEventListener("webglcontextlost",this.onContextLost,false);
     options.canvas.addEventListener("webglcontextrestored",this.onContextRestored,false);
@@ -60,11 +55,15 @@ export class ThreeRenderer implements Renderer{
 
   createScene():RendererScene{
     const fallback=createFallbackAvatar();const {root,head,leftEye,rightEye,mouth}=fallback;
+    const scene=new THREE.Scene();
+    scene.background=null;
+    const fill=new THREE.HemisphereLight(0xffffff,0x555555,1.4);
+    const key=new THREE.DirectionalLight(0xffffff,1.8); key.position.set(2,3,4);
+    scene.add(fill,key,root);
     const camera=new THREE.OrthographicCamera(-1,1,1,-1,.01,100);camera.position.z=5;
     const perspectiveCamera=new THREE.PerspectiveCamera(35,1,.01,100);perspectiveCamera.position.z=5;
-    this.scene.add(root);
     const slots=new Map<string,THREE.Group>();for(const slot of ["body","face","skin","hair","eyes","brows","nose","mouth","top","bottom","shoes","accessory"])slots.set(slot,new THREE.Group());slots.forEach(group=>root.add(group));
-    const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots,customizationMorphs:{},camera,perspectiveCamera,animations:[]};
+    const avatar:AvatarScene={id:crypto.randomUUID(),scene,root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots,customizationMorphs:{},camera,perspectiveCamera,animations:[]};
     this.scenes.set(avatar.id,avatar);return avatar;
   }
 
@@ -143,7 +142,7 @@ export class ThreeRenderer implements Renderer{
   }
 
   render(scene:RendererScene):void{if(this.contextLost)return;const avatar=this.requireScene(scene);this.renderScene(avatar)}
-  protected renderScene(avatar:AvatarScene):void{const camera=avatar.root.userData.cameraMode==="perspective"?avatar.perspectiveCamera:avatar.camera;this.renderer.render(this.scene,camera)}
+  protected renderScene(avatar:AvatarScene):void{const camera=avatar.root.userData.cameraMode==="perspective"?avatar.perspectiveCamera:avatar.camera;this.renderer.render(avatar.scene,camera)}
   protected renderAll():void{for(const id of this.scenes.keys()){const avatar=this.scenes.get(id);if(avatar)this.renderScene(avatar)}}
 
   setQuality(tier:QualityTier):void{const ratios:Record<QualityTier,number>={low:.75,medium:1,high:1.5,ultra:2};this.renderer.setPixelRatio(ratios[tier]);}
@@ -186,7 +185,7 @@ export class ThreeRenderer implements Renderer{
   dispose(scene:RendererScene):void{
     const avatar=this.requireScene(scene);
     disposeObject(avatar.root);
-    this.scene.remove(avatar.root);this.scenes.delete(avatar.id);
+    avatar.scene.remove(avatar.root);this.scenes.delete(avatar.id);
   }
 
   destroy():void{
