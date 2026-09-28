@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import {loadGLTF}from"./gltf-loader.js";
-import {applyMorphWeights,collectMorphBindings,type MorphBindingMap}from"./morphs.js";
+import {applyMorphWeights,collectMorphBindings,findMissingMorphParameters,type MorphBindingMap}from"./morphs.js";
 import type {FaceWeights,Renderer,RendererScene,Transform}from"@toon2.5d/core";
 
 interface AvatarScene extends RendererScene{
@@ -77,7 +77,7 @@ export class ThreeRenderer implements Renderer{
     avatar.rightEye.visible=false;
     avatar.mouth.visible=false;
     avatar.root.add(gltf.scene);
-    avatar.morphBindings=collectMorphBindings(gltf.scene,mappings);
+    avatar.morphBindings=collectMorphBindings(gltf.scene,mappings);\n    const missing=findMissingMorphParameters(avatar.morphBindings,mappings.map(mapping=>mapping.parameter));\n    if(missing.length>0){\n      gltf.scene.removeFromParent();\n      throw new Error(`Missing required facial morphs: ${missing.join(",")}`);\n    }
   }
 
   setAvatarTransform(scene:RendererScene,transform:Transform):void{
