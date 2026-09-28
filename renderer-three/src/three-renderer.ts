@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import {loadGLTF}from"./gltf-loader.js";
+import {createAssetCache}from"@toon2.5d/assets";
 import {createFallbackAvatar}from"./fallback.js";
 import {applyMorphWeights,collectMorphBindings,findMissingMorphParameters,type MorphBindingMap}from"./morphs.js";
 import type {FaceWeights,Renderer,RendererScene,Transform,CharacterCustomization,PerspectiveCameraState,LookAtPose,QualityTier,RuntimeAsset}from"@toon2.5d/core";
@@ -45,13 +46,14 @@ function disposeObject(root:THREE.Object3D):void{
     if(!(object instanceof THREE.Mesh))return;
     object.geometry.dispose();
     const materials=Array.isArray(object.material)?object.material:[object.material];
-    for(const material of materials){for(const key of ["map","normalMap","roughnessMap","metalnessMap","emissiveMap","aoMap","alphaMap"]){const texture=material[key as keyof THREE.Material] as THREE.Texture|undefined;if(texture instanceof THREE.Texture)texture.dispose();}material.dispose();}
+    for(const material of materials){for(const key of ["map","normalMap","roughnessMap","metalnessMap","emissiveMap","aoMap","alphaMap"]){const texture=material[key as keyof THREE.Material] as THREE.Texture|undefined;if(texture instanceof THREE.Texture&&!texture.userData.__toonCached)texture.dispose();}material.dispose();}
   });
 }
 
 export class ThreeRenderer implements Renderer{
   private readonly renderer:THREE.WebGLRenderer;
   private readonly scenes=new Map<string,AvatarScene>();
+  private readonly textureCache=createAssetCache<THREE.Texture>(async asset=>{const texture=await loadTextureSecure(asset.uri,{...(asset.integrity?{integrity:asset.integrity}:{}),...(asset.trustedOrigins?{trustedOrigins:asset.trustedOrigins}:{}),...(asset.limits?.maxBytes!==undefined?{maxBytes:asset.limits.maxBytes}:{}),...(asset.limits?.maxTexturePixels!==undefined?{maxTexturePixels:asset.limits.maxTexturePixels}:{})});texture.userData.__toonCached=true;return texture},texture=>texture.dispose(),128*1024*1024);
   private contextLost=false;
   private readonly onContextLost=(event:Event)=>{event.preventDefault();this.contextLost=true;};
   private readonly onContextRestored=()=>{this.contextLost=false;this.renderer.resetState();for(const avatar of this.scenes.values())this.markResourcesDirty(avatar.root);};
@@ -103,7 +105,7 @@ export class ThreeRenderer implements Renderer{
       disposeObject(gltf.scene);
       throw new Error(`Missing required facial morphs: ${missing.join(",")}`);
     }
-    if(avatar.loadedRoot){
+    if(avatar.loadedRoot){this.releaseCachedTextures(avatar.loadedRoot);
       disposeObject(avatar.loadedRoot);
       avatar.loadedRoot.removeFromParent();
     }
@@ -169,14 +171,14 @@ export class ThreeRenderer implements Renderer{
     const avatar=this.requireScene(scene);
     for(const item of customization.items){
       const slot=avatar.slots.get(item.slot); if(!slot)continue;
-      if(item.slot==="accessory"){for(const child of slot.children.slice())if(child.userData.customizationItemId===item.id){slot.remove(child);disposeObject(child)}}
-      else for(const child of slot.children.slice()){slot.remove(child);disposeObject(child)}
+      if(item.slot==="accessory"){for(const child of slot.children.slice())if(child.userData.customizationItemId===item.id){const key=child.userData.cachedTextureId as string|undefined;if(key)this.textureCache.release(key);slot.remove(child);disposeObject(child)}}
+      else for(const child of slot.children.slice()){const key=child.userData.cachedTextureId as string|undefined;if(key)this.textureCache.release(key);slot.remove(child);disposeObject(child)}
       if(item.morphs)avatar.customizationMorphs={...avatar.customizationMorphs,...item.morphs};
       if(item.assetUri){
         const gltf=await loadGLTF(item.assetUri,{renderer:this.renderer});
         if(this.scenes.get(scene.id)!==avatar){disposeObject(gltf.scene);throw new Error("Renderer scene was disposed during customization loading.")}
         gltf.scene.userData.customizationItemId=item.id;
-        if(item.textureUri){const texture=await loadTextureSecure(item.textureUri,{...(item.textureIntegrity?{integrity:item.textureIntegrity}:{}),...(item.textureTrustedOrigins?{trustedOrigins:item.textureTrustedOrigins}:{}),...(item.textureLimits?.maxBytes!==undefined?{maxBytes:item.textureLimits.maxBytes}:{}),...(item.textureLimits?.maxTexturePixels!==undefined?{maxTexturePixels:item.textureLimits.maxTexturePixels}:{})});applyTextureToRoot(gltf.scene,texture);}
+        if(item.textureUri){const key=item.textureId??item.id;await this.textureCache.preload([{id:key,uri:item.textureUri,...(item.textureIntegrity?{integrity:item.textureIntegrity}:{}),...(item.textureTrustedOrigins?{trustedOrigins:item.textureTrustedOrigins}:{}),...(item.textureLimits?{limits:item.textureLimits}:{}),morphBindings:[]}]);const texture=this.textureCache.acquire(key);if(!texture)throw new Error("Texture cache acquisition failed: "+key);gltf.scene.userData.cachedTextureId=key;applyTextureToRoot(gltf.scene,texture);}
         slot.add(gltf.scene);
       }
     }
@@ -198,10 +200,13 @@ export class ThreeRenderer implements Renderer{
     this.renderer.domElement.removeEventListener("webglcontextlost",this.onContextLost);
     this.renderer.domElement.removeEventListener("webglcontextrestored",this.onContextRestored);
     for(const scene of [...this.scenes.values()])this.dispose(scene);
+    this.textureCache.clear();
     this.renderer.dispose();
   }
 
   get isContextLost():boolean{return this.contextLost;}
+
+  private releaseCachedTextures(root:THREE.Object3D):void{root.traverse(object=>{const key=object.userData.cachedTextureId as string|undefined;if(key)this.textureCache.release(key)});}
 
   private markResourcesDirty(root:THREE.Object3D):void{
     root.traverse(object=>{
