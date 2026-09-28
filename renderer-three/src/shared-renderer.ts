@@ -6,8 +6,7 @@ export class SharedThreeRenderer extends ThreeRenderer implements SharedRenderer
  constructor(options:ThreeRendererOptions){super(options)}
  register(scene:RendererScene):void{this.active.add(scene.id)}
  unregister(scene:RendererScene):void{this.active.delete(scene.id)}
- override render(scene:RendererScene):void{this.requireRegistered(scene);this.active.add(scene.id)}
+ override render(scene:RendererScene):void{this.active.add(scene.id)}
  renderFrame():void{if(this.active.size>0)this.renderAll()}
  override dispose(scene:RendererScene):void{this.active.delete(scene.id);super.dispose(scene)}
- private requireRegistered(scene:RendererScene):void{if(!this.active.has(scene.id))throw new Error("Shared renderer scene is not registered.")}
 }
