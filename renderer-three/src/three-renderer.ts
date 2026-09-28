@@ -17,6 +17,7 @@ interface AvatarScene extends RendererScene{
   readonly perspectiveCamera:THREE.PerspectiveCamera;
   rig?:{headBone:string;leftEyeBone:string;rightEyeBone:string};
   mixer?:THREE.AnimationMixer;
+  animations:THREE.AnimationClip[];
 }
 
 export interface RendererMorphBinding{readonly parameter:keyof FaceWeights;readonly targets:readonly string[];readonly scale:number}
@@ -73,7 +74,7 @@ export class ThreeRenderer implements Renderer{
     mouth.scale.set(1,.35,.3);
     root.add(head,leftEye,rightEye,mouth);
     this.scene.add(root);
-    const slots=new Map<string,THREE.Group>();for(const slot of ["body","hair","top","bottom","shoes","accessory","head","texture"])slots.set(slot,new THREE.Group());slots.forEach(group=>root.add(group));const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots,customizationMorphs:{},camera,perspectiveCamera};
+    const slots=new Map<string,THREE.Group>();for(const slot of ["body","hair","top","bottom","shoes","accessory","head","texture"])slots.set(slot,new THREE.Group());slots.forEach(group=>root.add(group));const avatar:AvatarScene={id:crypto.randomUUID(),root,head,leftEye,rightEye,mouth,morphBindings:new Map(),slots,customizationMorphs:{},camera,perspectiveCamera,animations:[]};
     this.scenes.set(avatar.id,avatar);
     return avatar;
   }
@@ -114,6 +115,7 @@ export class ThreeRenderer implements Renderer{
     avatar.root.add(gltf.scene);
     avatar.loadedRoot=gltf.scene;
     avatar.mixer=new THREE.AnimationMixer(gltf.scene);
+    avatar.animations=[...gltf.animations];
     avatar.morphBindings=morphBindings;
     avatar.rig=asset?.rig;
   }
@@ -123,7 +125,7 @@ export class ThreeRenderer implements Renderer{
   getAnimationMixer(scene:RendererScene):THREE.AnimationMixer|undefined{return this.requireScene(scene).mixer}
 
   playAnimation(scene:RendererScene,name:string,options:{readonly loop?:THREE.AnimationActionLoopStyles;readonly repetitions?:number}={}):THREE.AnimationAction{
-    const avatar=this.requireScene(scene);if(!avatar.mixer||!avatar.loadedRoot)throw new Error("Scene has no native animation mixer.");const clip=THREE.AnimationClip.findByName(avatar.loadedRoot.animations??[],name);if(!clip)throw new Error("Animation clip not found: "+name);const action=avatar.mixer.clipAction(clip);if(options.loop!==undefined)action.setLoop(options.loop,options.repetitions??Infinity);action.play();return action;
+    const avatar=this.requireScene(scene);if(!avatar.mixer||!avatar.loadedRoot)throw new Error("Scene has no native animation mixer.");const clip=THREE.AnimationClip.findByName(avatar.animations,name);if(!clip)throw new Error("Animation clip not found: "+name);const action=avatar.mixer.clipAction(clip);if(options.loop!==undefined)action.setLoop(options.loop,options.repetitions??Infinity);action.play();return action;
   }
 
   setAvatarTransform(scene:RendererScene,transform:Transform):void{
