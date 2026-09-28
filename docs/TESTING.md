@@ -1,16 +1,29 @@
 # Testing Strategy
 
 ## Unit
-Test math, transforms, interpolation, expression blending, state machines, schema validation and asset resolution.
+
+Test math, transforms, interpolation, expression blending, facial sources, schema validation and asset resolution.
 
 ## Runtime integration
-Test initialization, load, update, resize, pause/resume and disposal.
+
+Test initialization, load, update, resize, pause/resume, explicit overrides and disposal.
 
 ## Browser
-Use Playwright for first render, customization, animation, responsive canvas and failure handling.
+
+Playwright browser tests are planned for:
+
+- first render;
+- customization;
+- animation;
+- responsive canvas;
+- failure handling.
+
+They are not yet part of the current automated V0 suite.
 
 ## Visual regression
-Canonical scenes:
+
+Canonical scenes are planned:
+
 - front neutral;
 - front happy;
 - left 30 degrees;
@@ -22,16 +35,40 @@ Canonical scenes:
 Use fixed camera, lighting and asset versions.
 
 ## Asset contract tests
-Every production pack must pass structural validation before publication.
+
+The reference asset generator and validator enforce the current facial asset contract. Every production pack should pass structural validation before publication.
 
 ## Performance
-Benchmark one avatar, repeated avatars and many avatars using shared resources. Record load, decode, first render, frame time and memory behavior.
+
+The benchmark suite covers deterministic expression work. Browser/GPU regression benchmarks for one avatar, repeated avatars and many shared avatars remain required before stable release.
+
+Record:
+
+- load;
+- decode;
+- first render;
+- frame time;
+- memory behavior.
 
 ## Deterministic time
-Animation tests use injected time instead of real requestAnimationFrame.
+
+Animation tests use explicit elapsed time instead of real requestAnimationFrame.
 
 ## Failure tests
-Missing asset, malformed manifest, unsupported compression, renderer failure, context loss, repeated destroy, duplicate load and cancellation.
+
+Required failure coverage includes:
+
+- missing asset;
+- malformed manifest;
+- unsupported compression;
+- renderer failure;
+- context loss;
+- repeated destroy;
+- duplicate load;
+- cancellation.
+
+Current coverage is partial; context-loss and browser failure paths remain future test gates.
 
 ## Release gate
+
 No stable release without unit, integration, browser, asset and performance gates.
