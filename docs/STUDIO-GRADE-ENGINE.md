@@ -1,6 +1,6 @@
 # Studio-Grade Engine
 
-The production engine extends the original V0 runtime without changing the renderer-agnostic core boundary.
+The production engine implements the V1 runtime and Studio-grade authoring surface without changing the renderer-agnostic core boundary.
 
 ## Runtime pipeline
 
@@ -16,7 +16,7 @@ Customization is slot based. Each slot can receive a GLB asset and/or texture. R
 
 ## Camera and LookAt
 
-Three.js supports orthographic and perspective projection. Perspective state validates FOV, aspect and clip planes. LookAt uses constrained yaw/pitch and exponential damping, then applies semantic expression weights plus dedicated Head/Eye bone quaternions when those bones exist.
+Three.js supports orthographic and perspective projection. Perspective state validates FOV, aspect and clip planes. LookAt uses constrained yaw/pitch and exponential damping, then applies semantic expression weights plus the explicit manifest-declared Head/Eye bone mapping.
 
 ## Asset lifecycle
 
@@ -24,11 +24,11 @@ The cache provides async preload, acquire/release reference counts, byte-budget 
 
 ## Shared rendering and quality
 
-SharedThreeRenderer coordinates multiple avatar scenes on one Three.js context. DynamicQualityController reacts to visibility and measured frame time and selects Low, Medium, High or Ultra pixel-ratio tiers. React integrates IntersectionObserver and the controller without placing React state in the frame loop.
+SharedThreeRenderer coordinates multiple avatar scenes on one Three.js context. SharedThreeRenderer coordinates IntersectionObserver visibility, frustum culling, priority scheduling and measured frame-time quality adaptation without placing React state in the frame loop.
 
 ## Studio
 
-@toon2.5d/studio is a real React preview surface backed by the same runtime and Three renderer. It exposes live facial controls and animation preview.
+@toon2.5d/studio is a React authoring surface backed by the same runtime and Three renderer. It exposes character slots, expressions, animation/event timelines, bone inspection, camera/quality controls and project import/export.
 
 ## Release gates
 
@@ -39,6 +39,6 @@ CI runs:
 - real headless Chromium Studio render;
 - canvas output check;
 - frame-time p95 budget;
-- repeated-mount observable heap-growth check.
+- repeated-mount observable heap-growth check;\n- WebGL2 GPU timer signal when supported;\n- WebGL context-loss/restoration recovery;\n- documentation consistency check.
 
 These gates validate deterministic software behavior; they do not claim identical GPU performance across physical hardware.
