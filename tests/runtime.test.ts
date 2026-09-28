@@ -1,17 +1,16 @@
-import {describe,expect,it}from"vitest";
+import {describe,expect,it,vi}from"vitest";
 import {createRuntime}from"../core/src/runtime.js";
 import type {Renderer}from"../core/src/renderer.js";
 
 function renderer():Renderer{
-  let disposed=false;
   return{
     createScene:()=>({id:"test"}),
     loadAsset:async()=>undefined,
     setAvatarTransform:()=>undefined,
-    setFaceWeights:()=>undefined,
-    render:()=>undefined,
-    resize:()=>undefined,
-    dispose:()=>{disposed=true;}
+    setFaceWeights:vi.fn(),
+    render:vi.fn(),
+    resize:vi.fn(),
+    dispose:vi.fn()
   };
 }
 
@@ -24,5 +23,24 @@ describe("runtime",()=>{
     runtime.resume();
     runtime.destroy();
     expect(runtime.status).toBe("disposed");
+  });
+
+  it("keeps explicit face overrides across updates",()=>{
+    const target=renderer();
+    const runtime=createRuntime({schemaVersion:1,assetId:"head.reference",expressionProfileId:"toon.face.v1"},target);
+    runtime.setFaceWeights({mouthSmileLeft:1});
+    runtime.update(.016);
+    runtime.render();
+    expect(target.setFaceWeights).toHaveBeenCalledWith({id:"test"},expect.objectContaining({mouthSmileLeft:1}));
+    runtime.clearFaceWeights();
+    runtime.update(.016);
+    runtime.render();
+    expect(target.setFaceWeights).toHaveBeenLastCalledWith({id:"test"},expect.objectContaining({mouthSmileLeft:0}));
+  });
+
+  it("validates resize dimensions",()=>{
+    const runtime=createRuntime({schemaVersion:1,assetId:"head.reference",expressionProfileId:"toon.face.v1"},renderer());
+    expect(()=>runtime.resize(0,320)).toThrow();
+    expect(()=>runtime.resize(320,320)).not.toThrow();
   });
 });
