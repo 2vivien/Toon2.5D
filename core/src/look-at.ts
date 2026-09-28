@@ -1,0 +1,4 @@
+import type {Vec3,Quaternion} from "./types.js";
+export interface LookAtConstraint{readonly yaw:number;readonly pitch:number}
+export interface LookAtPose{readonly head:Quaternion;readonly leftEye:Quaternion;readonly rightEye:Quaternion}
+export function solveLookAt(origin:Vec3,target:Vec3,limits:LookAtConstraint={yaw:Math.PI/3,pitch:Math.PI/4}):LookAtPose{const dx=target.x-origin.x,dy=target.y-origin.y,dz=target.z-origin.z;const yaw=Math.max(-limits.yaw,Math.min(limits.yaw,Math.atan2(dx,dz)));const pitch=Math.max(-limits.pitch,Math.min(limits.pitch,Math.atan2(dy,Math.hypot(dx,dz))));const halfYaw=yaw/2,halfPitch=pitch/2;const head={x:Math.sin(halfPitch),y:Math.sin(halfYaw),z:0,w:Math.cos(halfPitch)*Math.cos(halfYaw)};const eye={x:Math.sin(halfPitch*1.35),y:Math.sin(halfYaw*1.35),z:0,w:Math.cos(halfPitch*1.35)*Math.cos(halfYaw*1.35)};return{head,leftEye:eye,rightEye:eye};}
