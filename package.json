@@ -11,7 +11,9 @@
     "lint": "pnpm -r --if-present lint",
     "test:browser": "playwright test",
     "docs:check": "node scripts/check-docs.mjs",
-    "bench:ci": "vitest bench benchmarks --run"
+    "bench:ci": "vitest bench benchmarks --run",
+    "changeset": "changeset",
+    "release": "pnpm build && pnpm typecheck && pnpm test && pnpm docs:check && changeset publish"
   },
   "devDependencies": {
     "typescript": "^7.0.2",
@@ -21,6 +23,7 @@
     "vite": "^7.1.5",
     "@vitejs/plugin-react": "^5.0.2",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "@changesets/cli": "^2.29.7"
   }
 }
