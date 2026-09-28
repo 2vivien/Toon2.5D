@@ -22,6 +22,7 @@ jobs:
       - run: pnpm -r --sort typecheck
       - run: pnpm test
       - run: pnpm docs:check
+      - run: pnpm bench:ci
       - run: pnpm -r pack && find . -name "*.tgz" -delete
 
   asset-reference:
