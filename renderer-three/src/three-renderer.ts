@@ -155,6 +155,9 @@ export class ThreeRenderer implements Renderer{
   protected renderScene(avatar:AvatarScene):void{const camera=avatar.root.userData.cameraMode==="perspective"?avatar.perspectiveCamera:avatar.camera;this.renderer.render(avatar.scene,camera)}
   protected renderAll():void{for(const id of this.scenes.keys()){const avatar=this.scenes.get(id);if(avatar)this.renderScene(avatar)}}
 
+  setCharacterColors(scene:RendererScene,colors:import("@toon2.5d/core").CharacterColors):void{const avatar=this.requireScene(scene);for(const [slotName,color] of Object.entries(colors)){if(!color)continue;const slot=avatar.slots.get(slotName);if(slot)applyColorToRoot(slot,color)}}
+  setBoneTransform(scene:RendererScene,boneName:string,transform:Transform):void{const avatar=this.requireScene(scene);const bone=avatar.loadedRoot?.getObjectByName(boneName);if(!(bone instanceof THREE.Bone))throw new Error("Bone not found: "+boneName);bone.position.set(transform.position.x,transform.position.y,transform.position.z);bone.quaternion.set(transform.rotation.x,transform.rotation.y,transform.rotation.z,transform.rotation.w).normalize();bone.scale.set(transform.scale.x,transform.scale.y,transform.scale.z)}
+
   setQuality(tier:QualityTier):void{const ratios:Record<QualityTier,number>={low:.75,medium:1,high:1.5,ultra:2};this.renderer.setPixelRatio(ratios[tier]);}
 
   setPerspectiveCamera(scene:RendererScene,camera:PerspectiveCameraState):void{const avatar=this.requireScene(scene);avatar.perspectiveCamera.fov=camera.fov;avatar.perspectiveCamera.aspect=camera.aspect;avatar.perspectiveCamera.near=camera.near;avatar.perspectiveCamera.far=camera.far;avatar.perspectiveCamera.updateProjectionMatrix();avatar.root.userData.cameraMode="perspective";}
