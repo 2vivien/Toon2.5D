@@ -14,7 +14,7 @@ V1 is released only from a commit that passes the complete executable validation
 
 The GPU timer test measures an actual GPU command through WebGL2 timer queries. It is deliberately conditional because timer-query support is not universal. Unsupported environments are reported as skipped/unsupported rather than being treated as a measured pass.
 
-## What the GPU gate does not mean
+The heap-growth test is conditional on Chromium exposing `performance.memory`; unsupported environments are reported without fabricating a measurement.\n\n## What the GPU gate does not mean
 
 The GPU gate is a regression signal for the CI rendering environment. It is not a promise of identical frame times on every physical GPU, browser, driver or operating system.
 
