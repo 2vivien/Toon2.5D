@@ -1,9 +1,8 @@
-import type {FaceWeights,Transform} from "./types.js";
-
+import type {FaceWeights,RuntimeAsset,Transform}from"./types.js";
 export interface RendererScene{readonly id:string}
-
 export interface Renderer{
   createScene():RendererScene;
+  loadAsset(scene:RendererScene,asset:RuntimeAsset):Promise<void>;
   setAvatarTransform(scene:RendererScene,transform:Transform):void;
   setFaceWeights(scene:RendererScene,weights:FaceWeights):void;
   render(scene:RendererScene):void;
