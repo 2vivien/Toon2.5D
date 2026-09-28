@@ -4,7 +4,7 @@
 
 - TypeScript 7.0.x with strict compiler settings.
 - Three.js 0.186.x for the first renderer adapter.
-- WebGL through Three.js as the initial graphics backend.
+- WebGL through Three.js as the primary graphics backend; WebGPU is implemented as a parity adapter.
 - glTF/GLB as the canonical runtime asset format.
 - pnpm 10.15.x workspaces.
 - Vitest 5.x for deterministic tests and benchmarks.
@@ -48,7 +48,7 @@ Current repository verification uses:
 - Blender reference asset generation;
 - Blender reference asset validation.
 
-The repository currently does not include Playwright, ESLint, Prettier or Changesets as installed release tooling. These remain future tooling options when their corresponding release gates are introduced.
+The repository includes Playwright browser gates and Changesets release tooling. ESLint and Prettier are not required release gates in V1.
 
 ## Runtime principles
 
@@ -61,4 +61,4 @@ The repository currently does not include Playwright, ESLint, Prettier or Change
 
 ## Future options
 
-Worker rendering, React Native and native mobile renderers remain additive adapters outside the V1 web runtime. WebGPU is implemented as a renderer adapter.
+Worker rendering, React Native and native mobile renderers remain additive adapters outside the V1 web runtime. WebGPU is already implemented as a renderer adapter.
