@@ -9,7 +9,9 @@
     "test": "vitest run",
     "bench": "vitest bench benchmarks",
     "lint": "pnpm -r --if-present lint",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "docs:check": "node scripts/check-docs.mjs",
+    "bench:ci": "vitest bench benchmarks --run"
   },
   "devDependencies": {
     "typescript": "^7.0.2",
