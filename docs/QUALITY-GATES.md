@@ -13,7 +13,7 @@ Before a release can be considered stable:
 
 - avatar can load
 - avatar can render
-- avatar can animate
+- avatar can animate through the runtime expression pipeline
 - avatar can resize
 - avatar can dispose without retained engine resources
 
@@ -21,7 +21,7 @@ Before a release can be considered stable:
 
 - manifest validates
 - missing required assets fail clearly
-- cache works
+- cache lifecycle is implemented and tested before being declared stable
 - versioned assets do not collide
 
 ## Mathematics
@@ -54,5 +54,8 @@ Before a release can be considered stable:
 ## Documentation
 
 - README works from a fresh checkout
-- API examples are executable or tested
+- every current API example is executable or covered by tests
+- target/future APIs are explicitly marked
 - migration notes exist for breaking schema/API changes
+
+A gate is not considered satisfied merely because it is documented; it requires executable evidence.
