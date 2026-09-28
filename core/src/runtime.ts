@@ -22,6 +22,7 @@ export interface AvatarRuntime{
   setPerspectiveCamera(camera:import("./camera.js").PerspectiveCameraState):void;
   setLookAtPose(pose:import("./look-at.js").LookAtPose):void;
   applyCustomization(customization:import("./customization.js").CharacterCustomization):Promise<void>;
+  setQuality(tier:import("./quality.js").QualityTier):void;
   destroy():void;
 }
 
@@ -69,6 +70,7 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer):Ava
     setPerspectiveCamera(camera){if(renderer.setPerspectiveCamera)renderer.setPerspectiveCamera(scene,camera);},
     setLookAtPose(pose){if(renderer.setLookAtPose)renderer.setLookAtPose(scene,pose);},
     async applyCustomization(customization){if(renderer.applyCustomization)await renderer.applyCustomization(scene,customization);else throw new ToonCoreError("INVALID_LIFECYCLE","Renderer does not support character customization.");},
+    setQuality(tier){if(renderer.setQuality)renderer.setQuality(tier);},
     destroy(){if(status==="disposed")return;loadGeneration++;renderer.dispose(scene);status="disposed";}
   };
 }
