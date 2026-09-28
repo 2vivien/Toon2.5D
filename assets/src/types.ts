@@ -1,8 +1,8 @@
-import type {FaceParameter} from "@toon2.5d/core";
+import type {FaceParameter}from"@toon2.5d/core";
 
 export interface MorphBinding{
   readonly parameter:FaceParameter;
-  readonly target:string;
+  readonly targets:readonly string[];
   readonly scale:number;
 }
 
