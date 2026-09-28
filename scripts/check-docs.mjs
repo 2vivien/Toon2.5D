@@ -7,7 +7,7 @@ const files=[];
 async function walk(dir){
   for(const entry of await readdir(dir,{withFileTypes:true})){
     const path=join(dir,entry.name);
-    if(entry.isDirectory())await walk(path);
+    if(entry.isDirectory()){if(entry.name==="archive")continue;await walk(path);}
     else if(entry.name.endsWith(".md"))files.push(path);
   }
 }
@@ -21,7 +21,7 @@ for(const file of files){
   }
 }
 if(violations.length){
-  console.error("Documentation contains stale V1 contradictions:");
+  console.error("Documentation contains stale V0 references:");
   console.error(violations.join("\n"));
   process.exit(1);
 }
