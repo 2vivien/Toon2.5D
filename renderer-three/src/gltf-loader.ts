@@ -30,7 +30,7 @@ function validateOrigin(url:string,trustedOrigins?:readonly string[]):void{
   }
 }
 function toLimits(options:GLTFLoadOptions):AssetLoadLimits{
-  return{maxBytes:options.maxBytes,maxTexturePixels:options.maxTexturePixels,maxVertices:options.maxVertices,maxAnimations:options.maxAnimations};
+  return{...(options.maxBytes!==undefined?{maxBytes:options.maxBytes}:{}),...(options.maxTexturePixels!==undefined?{maxTexturePixels:options.maxTexturePixels}:{}),...(options.maxVertices!==undefined?{maxVertices:options.maxVertices}:{}),...(options.maxAnimations!==undefined?{maxAnimations:options.maxAnimations}:{})};
 }
 async function verifyIntegrity(data:ArrayBuffer,integrity?:string):Promise<void>{
   if(!integrity)return;
