@@ -1,5 +1,7 @@
 # Roadmap
 
+> Consolidation validation: merge commit `534a1fd425a4a1ee29becf2347c7833df274d476` passed the PR release gates before merge.
+
 ## V1 consolidation status
 
 The V1 foundation and final consolidation cover strict TypeScript builds, isolated renderer scenes, shared scheduling, WebGL/WebGPU parity, secure model and texture asset resolution, CharacterDefinition composition, multi-accessories, runtime animation markers, quality adaptation, Studio authoring controls, browser performance/context gates, package metadata and documentation consistency.
