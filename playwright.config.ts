@@ -1,1 +1,1 @@
-import{defineConfig}from"@playwright/test";export default defineConfig({testDir:"tests/browser",webServer:{command:"pnpm exec vite --configLoader runner --host 127.0.0.1 --port 5173",url:"http://127.0.0.1:5173/",reuseExistingServer:false,timeout:120000},use:{headless:true},timeout:30000});
+import{defineConfig}from"@playwright/test";export default defineConfig({testDir:"tests/browser",webServer:{command:"pnpm exec vite --config tests/browser/vite.config.mjs",url:"http://127.0.0.1:5173/",reuseExistingServer:false,timeout:120000},use:{headless:true},timeout:30000});
