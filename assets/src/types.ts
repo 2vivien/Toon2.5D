@@ -1,4 +1,4 @@
-import type {ExpressionProfile}from"@toon2.5d/core";
+import type {ExpressionProfile,AssetLoadLimits,AssetRig}from"@toon2.5d/core";
 export type {MorphBinding}from"@toon2.5d/core";
 export interface AssetManifest{
   readonly schemaVersion:1;
@@ -8,5 +8,5 @@ export interface AssetManifest{
   readonly mime:"model/gltf-binary";
   readonly integrity?:string;
   readonly expressionProfile:ExpressionProfile;
-  readonly anchors:readonly string[];
+  readonly anchors:readonly string[];\n  readonly rig?:AssetRig;\n  readonly limits?:AssetLoadLimits;\n  readonly trustedOrigins?:readonly string[];
 }
