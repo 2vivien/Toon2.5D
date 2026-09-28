@@ -30,6 +30,13 @@ describe("expression controller",()=>{
     expect(output.mouthSmileLeft).toBeCloseTo(.5);
   });
 
+  it("keeps explicit overrides across evaluations",()=>{
+    const controller=createExpressionController();
+    controller.setFaceWeights?.({mouthSmileLeft:1});
+    const face=controller.evaluate({deltaSeconds:.016,elapsedSeconds:.016,lookTarget:null});
+    expect(face.mouthSmileLeft).toBe(1);
+  });
+
   it("blends multiplication around a base contribution",()=>{
     const face=createNeutralFace();
     const output=composeInto([
