@@ -61,6 +61,10 @@ export class ThreeRenderer implements Renderer{
     return eye;
   }
 
+  async loadAsset(scene:RendererScene,asset:{readonly uri:string;readonly morphBindings:readonly RendererMorphBinding[]}):Promise<void>{
+    await this.loadModel(scene,asset.uri,asset.morphBindings);
+  }
+
   async loadModel(scene:RendererScene,url:string,mappings:readonly RendererMorphBinding[]=[]):Promise<void>{
     const avatar=this.requireScene(scene);
     const gltf=await loadGLTF(url,{renderer:this.renderer});
