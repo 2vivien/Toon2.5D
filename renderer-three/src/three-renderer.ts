@@ -77,7 +77,12 @@ export class ThreeRenderer implements Renderer{
     avatar.rightEye.visible=false;
     avatar.mouth.visible=false;
     avatar.root.add(gltf.scene);
-    avatar.morphBindings=collectMorphBindings(gltf.scene,mappings);\n    const missing=findMissingMorphParameters(avatar.morphBindings,mappings.map(mapping=>mapping.parameter));\n    if(missing.length>0){\n      gltf.scene.removeFromParent();\n      throw new Error(`Missing required facial morphs: ${missing.join(",")}`);\n    }
+    avatar.morphBindings=collectMorphBindings(gltf.scene,mappings);
+    const missing=findMissingMorphParameters(avatar.morphBindings,mappings.map(mapping=>mapping.parameter));
+    if(missing.length>0){
+      gltf.scene.removeFromParent();
+      throw new Error(`Missing required facial morphs: ${missing.join(",")}`);
+    }
   }
 
   setAvatarTransform(scene:RendererScene,transform:Transform):void{
