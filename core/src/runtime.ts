@@ -24,7 +24,7 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer):Ava
   validateDefinition(definition);
   const scene:RendererScene=renderer.createScene();
   const expression=createExpressionController();
-  let status:RuntimeStatus="created";
+  let status:RuntimeStatus="ready";
   let face=createNeutralFace();
   let elapsed=0;
   let loadGeneration=0;
