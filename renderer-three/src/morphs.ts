@@ -15,7 +15,7 @@ export function collectMorphBindings(root:THREE.Object3D,mappings:readonly Morph
         const index=object.morphTargetDictionary[target];
         if(index===undefined)continue;
         const current=map.get(mapping.parameter)??[];
-        map.set(mapping.parameter,[...current,{mesh:object,index,scale:mapping.scale,curve:mapping.curve}]);
+        map.set(mapping.parameter,[...current,{mesh:object,index,scale:mapping.scale,...(mapping.curve?{curve:mapping.curve}:{})}]);
       }
     }
   });
