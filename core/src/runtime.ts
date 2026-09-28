@@ -9,7 +9,7 @@ import type {CharacterDefinition,CharacterPart}from"./character.js";
 import type {CharacterCustomization}from"./customization.js";
 import type {ExpressionController}from"./expression/controller.js";
 
-export interface AssetResolver{resolve(id:string):RuntimeAsset|undefined}
+export interface AssetResolver{resolve(id:string):RuntimeAsset|undefined;resolveTexture?(id:string):import("./types.js").RuntimeTextureAsset|undefined}
 export interface AvatarRuntime{
   readonly status:RuntimeStatus;
   readonly face:FaceWeights;
