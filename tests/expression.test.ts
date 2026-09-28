@@ -18,7 +18,7 @@ describe("expression controller",()=>{
     controller.setEmotion("happy",1);
     controller.setLookTarget({x:1,y:0,z:1});
     const face=controller.evaluate({deltaSeconds:.016,elapsedSeconds:0,lookTarget:null});
-    expect(face.eyeLookOutLeft).toBeGreaterThan(0);
+    expect(face.eyeLookInLeft).toBeGreaterThan(0);
     expect(face.mouthSmileLeft).toBeGreaterThan(.5);
   });
 
@@ -30,12 +30,12 @@ describe("expression controller",()=>{
     expect(output.mouthSmileLeft).toBeCloseTo(.5);
   });
 
-  it("blends multiplication around the current value",()=>{
+  it("blends multiplication around a base contribution",()=>{
     const face=createNeutralFace();
-    face.mouthSmileLeft=.8;
-    const output=composeInto([{
-      source:"external",parameter:"mouthSmileLeft",value:0,weight:.5,priority:10,mode:"multiply"
-    }],face);
+    const output=composeInto([
+      {source:"base",parameter:"mouthSmileLeft",value:.8,weight:1,priority:0,mode:"override"},
+      {source:"external",parameter:"mouthSmileLeft",value:0,weight:.5,priority:10,mode:"multiply"}
+    ],face);
     expect(output.mouthSmileLeft).toBeCloseTo(.4);
   });
 });
