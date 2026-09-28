@@ -6,3 +6,4 @@ export * from "./renderer.js";
 export * from "./scene.js";
 export * from "./definition.js";
 export * from "./runtime.js";
+export * from "./expression/index.js";
