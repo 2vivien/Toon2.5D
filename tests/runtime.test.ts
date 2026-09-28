@@ -50,4 +50,9 @@ describe("runtime",()=>{
     expect(target.loadAsset).toHaveBeenCalledWith({id:"test"},{id:"head.reference",version:"1",uri:"https://cdn.example.test/head.glb",morphBindings:[]});
   });
 
+  it("rejects direct customization URLs that bypass the asset resolver",async()=>{
+    const target=renderer();
+    const runtime=createRuntime({schemaVersion:1,assetId:"head.reference",expressionProfileId:"toon.face.v1"},target);
+    await expect(runtime.applyCustomization({selections:{body:null,face:null,skin:null,hair:null,eyes:null,brows:null,nose:null,mouth:null,top:null,bottom:null,shoes:null,accessory:null},items:[{id:"hair",slot:"hair",assetUri:"https://cdn.example.test/hair.glb"}]})).rejects.toThrow("stable Asset IDs");
+  });
 });
