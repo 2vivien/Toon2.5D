@@ -8,10 +8,10 @@
     "id": "toon.face.v1",
     "version": 1,
     "morphBindings": [
-      {"parameter":"mouthSmile","target":"mouthSmile","scale":1},
-      {"parameter":"mouthOpen","target":"mouthOpen","scale":1},
-      {"parameter":"eyeBlinkLeft","target":"eyeBlinkLeft","scale":1},
-      {"parameter":"eyeBlinkRight","target":"eyeBlinkRight","scale":1}
+      {"parameter":"mouthSmile","targets":["mouthSmileLeft","mouthSmileRight"],"scale":1},
+      {"parameter":"mouthOpen","targets":["jawOpen"],"scale":1},
+      {"parameter":"eyeBlinkLeft","targets":["eyeBlinkLeft"],"scale":1},
+      {"parameter":"eyeBlinkRight","targets":["eyeBlinkRight"],"scale":1}
     ]
   },
   "anchors": ["AvatarRoot","Head","Eye.L","Eye.R","Mouth"]
