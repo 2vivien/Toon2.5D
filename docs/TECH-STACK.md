@@ -1,62 +1,64 @@
 # Technology Stack
 
-## Runtime
+## Current V0 runtime
 
-- TypeScript: primary language.
-- Three.js: 3D scene/rendering abstraction.
-- WebGL: initial browser graphics backend through Three.js.
-- glTF/GLB: canonical 3D asset interchange/runtime format.
-- Web APIs: requestAnimationFrame, ResizeObserver, Pointer Events, Page Visibility where appropriate.
-
-## Build
-
-- pnpm workspaces.
-- TypeScript project references where useful.
-- tsup or an equivalent modern bundler for library packages.
-- Vitest for unit tests.
-- Playwright for browser integration tests.
-- ESLint + Prettier.
-- Changesets for package versioning when publishing multiple packages.
+- TypeScript 7.0.x with strict compiler settings.
+- Three.js 0.186.x for the first renderer adapter.
+- WebGL through Three.js as the initial graphics backend.
+- glTF/GLB as the canonical runtime asset format.
+- pnpm 10.15.x workspaces.
+- Vitest 5.x for deterministic tests and benchmarks.
+- Blender for deterministic reference-asset generation and validation.
 
 ## Package policy
 
 Core packages must not ship unnecessary framework dependencies.
 
-Recommended dependency direction:
+Current dependency direction:
 
 ```
 core
   ^
   |
-assets
-  ^
-renderer-three
-  ^
-react
+  +-- assets
+  +-- animation
+  +-- renderer-three
+          ^
+          |
+          +-- react
 ```
 
-In practice, dependencies must form a DAG and no package may import an adapter package.
+The animation package depends on core and adapts animation output into the core ExpressionSource contract. Core never imports an adapter package.
 
 ## Asset pipeline
 
-- Blender for modeling, rigging, blendshapes and animation authoring.
+- Blender for modeling, rigging, morph targets and animation authoring.
 - glTF/GLB export for runtime.
-- Draco or Meshopt compression when profiling demonstrates benefit.
-- KTX2/Basis Universal textures when the target/browser pipeline supports them and the added complexity is justified.
-- CDN/object storage for large asset packs in production.
+- Meshopt decoding enabled by the Three.js loader.
+- Draco and KTX2/BasisU support when decoder/transcoder configuration is provided.
+- CDN/object storage remains a production deployment option.
 
-## Tooling rules
+## Build and verification
 
-- Node.js LTS for development and CI.
-- Lockfile committed.
-- Reproducible builds.
-- No runtime network dependency for the core engine.
-- Browser compatibility must be tested on the declared support matrix.
+Current repository verification uses:
 
-## Why Three.js
+- TypeScript project compilation;
+- strict typechecking;
+- Vitest unit/integration tests;
+- Blender reference asset generation;
+- Blender reference asset validation.
 
-Three.js provides mature scene, camera, material, animation and WebGL integration. Toon2.5D differentiates itself at the avatar-runtime layer rather than reimplementing a graphics API.
+The repository currently does not include Playwright, ESLint, Prettier or Changesets as installed release tooling. These remain future tooling options when their corresponding release gates are introduced.
+
+## Runtime principles
+
+- No runtime network dependency for core.
+- No React state updates in the frame loop.
+- No Three.js dependency in core.
+- No hidden telemetry.
+- Explicit resource ownership and disposal.
+- Reproducible asset generation.
 
 ## Future options
 
-WebGPU, worker rendering, React Native, native mobile renderers and server-side asset preprocessing are future adapters, not V0 requirements.
+WebGPU, worker rendering, React Native, native mobile renderers, browser visual testing and server-side asset preprocessing are future adapters or tooling layers, not V0 requirements.
