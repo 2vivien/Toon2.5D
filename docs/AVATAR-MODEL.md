@@ -39,7 +39,7 @@ type CharacterDefinition = {
 };
 ```
 
-This richer model is an architectural target, not the current V0 runtime contract.
+This richer model is an architectural target, not the current V1 runtime contract.
 
 ## IDs
 
@@ -72,7 +72,7 @@ Definition
   -> Morph/bone bindings
 ```
 
-V0 currently resolves the asset reference and expression profile rather than exposing the full composition pipeline.
+The current runtime resolves the asset reference and expression profile rather than exposing the full composition pipeline.
 
 ## Customization
 
@@ -94,4 +94,4 @@ Never silently reinterpret old definitions.
 
 ## Future full-body extension
 
-The model reserves room for torso, clothing, hands, legs, footwear and body proportions, but V0 remains head-focused.
+The model reserves room for torso, clothing, hands, legs, footwear and body proportions, but The current V1 reference remains head-focused.
