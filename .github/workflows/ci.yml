@@ -47,6 +47,6 @@ jobs:
           node-version: 22
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm build
-      - run: pnpm exec vite build --config tests/browser/vite.config.mjs --outDir tests/browser/dist
+      - run: pnpm exec vite build --config tests/browser/vite.config.mjs --outDir dist
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:browser
