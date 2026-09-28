@@ -1,7 +1,7 @@
 import type {AvatarRuntime}from"./runtime.js";
-import type {FaceParameter}from"./types.js";
+import type {FaceParameter,AssetLoadLimits}from"./types.js";
 export type CustomizationSlot="body"|"face"|"skin"|"hair"|"eyes"|"brows"|"nose"|"mouth"|"top"|"bottom"|"shoes"|"accessory";
-export interface CustomizationItem{readonly id:string;readonly slot:CustomizationSlot;readonly assetUri?:string;readonly textureUri?:string;readonly morphs?:Readonly<Partial<Record<FaceParameter,number>>>}
+export interface CustomizationItem{readonly id:string;readonly slot:CustomizationSlot;readonly assetUri?:string;readonly textureUri?:string;readonly assetId?:string;readonly textureId?:string;readonly integrity?:string;readonly trustedOrigins?:readonly string[];readonly limits?:AssetLoadLimits;readonly morphs?:Readonly<Partial<Record<FaceParameter,number>>>}
 export interface CharacterCustomization{readonly selections:Readonly<Record<CustomizationSlot,string|null>>;readonly items:readonly CustomizationItem[]}
 const slots:readonly CustomizationSlot[]=["body","face","skin","hair","eyes","brows","nose","mouth","top","bottom","shoes","accessory"];
 function validateUri(uri:string):void{const parsed=new URL(uri);if(parsed.protocol!=="http:"&&parsed.protocol!=="https:")throw new RangeError("Customization asset URLs must use HTTP(S).")}
