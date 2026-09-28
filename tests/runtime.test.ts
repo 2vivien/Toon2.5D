@@ -63,8 +63,9 @@ describe("runtime",()=>{
       resolveTexture:id=>id==="hair.texture"?{id,version:"1",uri:"https://cdn.example.test/hair.webp",integrity:"sha256-YWJjZA==",trustedOrigins:["https://cdn.example.test"],limits:{maxBytes:2048,maxTexturePixels:4096}}:undefined
     }});
     await runtime.applyCharacter({version:1,model:"avatar.base",hair:{assetId:"hair.curly",textureId:"hair.texture"},colors:{hair:"#112233"},accessories:[{assetId:"hair.curly"}]});
-    expect(target.applyCustomization).toHaveBeenCalledWith({id:"test"},expect.objectContaining({colors:{hair:"#112233"}}));
-    const customization=target.applyCustomization.mock.calls[0]?.[1] as {items:Array<{textureId?:string;textureIntegrity?:string}>};
+    const applyMock=vi.mocked(target.applyCustomization!);
+    expect(applyMock).toHaveBeenCalledWith({id:"test"},expect.objectContaining({colors:{hair:"#112233"}}));
+    const customization=applyMock.mock.calls[0]?.[1] as {items:Array<{textureId?:string;textureIntegrity?:string}>};
     expect(customization.items.some(item=>item.textureId==="hair.texture"&&item.textureIntegrity==="sha256-YWJjZA==")).toBe(true);
   });
 });
