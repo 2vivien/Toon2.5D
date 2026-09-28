@@ -6,6 +6,20 @@ GLB/glTF is the runtime format for 3D assets.
 
 The asset pipeline may originate from Blender, but the runtime must never depend on Blender.
 
+## Current V0 asset contract
+
+V0 accepts a logical asset manifest containing:
+
+- schema version;
+- stable asset ID and version;
+- HTTP(S) GLB URI;
+- GLB MIME type;
+- expression profile;
+- semantic morph bindings;
+- at least one anchor.
+
+Manifest validation currently covers these metadata and expression-contract rules.
+
 ## Asset categories
 
 - base head
@@ -19,35 +33,22 @@ The asset pipeline may originate from Blender, but the runtime must never depend
 - materials/textures
 - animation clips
 
-## Manifest
+These categories are part of the target asset model; V0 primarily consumes a complete GLB head asset.
 
-Every production asset pack has a manifest:
+## Registry
 
-```json
-{
-  "version": 1,
-  "id": "toon-default",
-  "assets": {
-    "head.base": {
-      "type": "model",
-      "path": "head/base.glb"
-    }
-  }
-}
-```
+The current AssetRegistry provides:
 
-## Validation
+- register(manifest);
+- get(id);
+- resolve(id);
+- clear().
 
-Validate before GPU creation:
-
-- schema
-- asset ID format
-- supported type
-- expected file metadata
-- compatible engine version
-- optional integrity metadata
+It is a manifest registry and resolver, not yet a complete asynchronous cache or persistent asset lifecycle manager.
 
 ## Loading states
+
+The target lifecycle is:
 
 ```
 unrequested
@@ -57,25 +58,31 @@ unrequested
   -> disposed
 ```
 
-Failure is terminal for that load attempt but may be retried according to policy.
+V0 runtime loading is exposed through `runtime.load()`. Cache, retry policy and persistent storage are future asset-system layers.
 
-## Caching
+## Validation
 
-Use layered caching:
+Validate before GPU creation where possible:
 
-1. in-memory asset registry
-2. browser/network cache
-3. optional persistent cache in future versions
+- schema;
+- asset identity;
+- supported type;
+- URL scheme;
+- expression profile;
+- morph aliases;
+- anchors.
 
-Cache keys must include asset version.
+Future validation layers include binary GLB inspection, integrity verification, engine compatibility, resource limits and structural safety checks.
 
 ## Sharing
 
-Shared immutable assets can be reused between avatars. Per-instance mutable state must never be stored in the shared asset object.
+Shared immutable assets can be reused between avatars. Per-instance mutable state must never be stored in shared asset objects.
 
 ## Compression
 
-Profile before choosing compression. Meshopt/Draco and KTX2 can reduce transfer/memory cost but add decode complexity. The pipeline must document supported browser fallbacks.
+Meshopt decoding is enabled by default in the Three.js loader. Draco and KTX2/BasisU require explicit decoder/transcoder configuration and renderer support.
+
+Profile before choosing compression. Compression is useful only when transfer, memory and decode costs are justified by benchmarks.
 
 ## CDN
 
@@ -83,4 +90,6 @@ Production applications should be able to configure an asset base URL without ch
 
 ## Security
 
-Never execute downloaded assets as code. Treat remote asset metadata as untrusted input. Enforce allowed origins and size limits in host applications.
+Never execute downloaded assets as code. Treat remote asset metadata as untrusted input. Host applications should enforce allowed origins and resource limits.
+
+Runtime binary resource limits and full integrity verification remain future hardening layers.
