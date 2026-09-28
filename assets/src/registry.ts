@@ -17,7 +17,7 @@ export function createAssetRegistry():AssetRegistry{
     resolve(id){
       const manifest=entries.get(id);
       if(!manifest)return undefined;
-      return {id:manifest.id,version:manifest.version,uri:manifest.uri,morphBindings:manifest.expressionProfile.morphBindings,integrity:manifest.integrity,trustedOrigins:manifest.trustedOrigins,limits:manifest.limits,rig:manifest.rig};
+      return {id:manifest.id,version:manifest.version,uri:manifest.uri,morphBindings:manifest.expressionProfile.morphBindings,...(manifest.integrity?{integrity:manifest.integrity}:{}),...(manifest.trustedOrigins?{trustedOrigins:manifest.trustedOrigins}:{}),...(manifest.limits?{limits:manifest.limits}:{}),...(manifest.rig?{rig:manifest.rig}:{})};
     },
     clear(){entries.clear();}
   };
