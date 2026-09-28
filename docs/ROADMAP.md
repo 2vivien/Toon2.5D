@@ -101,26 +101,13 @@ Remaining:
 
 ## Phase 7 — Studio
 
-Only after the engine is stable:
-
-- avatar generator
-- customization UI
-- preview
-- save/load definitions
-- export
-
-## Phase 8 — Ecosystem
-
-Potential packages:
-
-- @toon2.5d/core
-- @toon2.5d/renderer-three
-- @toon2.5d/assets
-- @toon2.5d/animation
-- @toon2.5d/react
-
-Future adapters may include React Native or WebGPU.
-
-## Release philosophy
-
-Do not publish a public stable API before the first end-to-end vertical slice is working, browser-tested and benchmarked.
+Implemented in the studio-grade branch:
+- animation state machine with triggers and parameter conditions;
+- crossfade and weighted multi-clip expression blending;
+- full customization slots with GLB swaps and texture application;
+- perspective camera and damped head/eye LookAt;
+- reference-counted async asset cache with preload and invalidation;
+- shared renderer frame coordinator;
+- adaptive Low/Medium/High/Ultra quality and visibility throttling;
+- Playwright browser rendering, frame-time and observable heap gates;
+- interactive React Studio preview.
