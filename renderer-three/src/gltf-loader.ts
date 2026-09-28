@@ -4,8 +4,9 @@ import {DRACOLoader}from"three/examples/jsm/loaders/DRACOLoader.js";
 import {KTX2Loader}from"three/examples/jsm/loaders/KTX2Loader.js";
 import {MeshoptDecoder}from"three/examples/jsm/libs/meshopt_decoder.module.js";
 import type {AssetLoadLimits}from"@toon2.5d/core";
+import {createAssetCache}from"@toon2.5d/assets";
 
-export interface GLTFLoadOptions{
+const glbCache=createAssetCache<ArrayBuffer>(async()=>new ArrayBuffer(0),()=>{},128*1024*1024);\n\nexport interface GLTFLoadOptions{
   readonly dracoPath?:string;
   readonly ktx2TranscoderPath?:string;
   readonly renderer?:THREE.WebGLRenderer;
