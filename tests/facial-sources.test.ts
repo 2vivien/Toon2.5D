@@ -5,8 +5,8 @@ import {lookAtSource}from"../core/src/expression/look-at.js";
 
 describe("facial sources",()=>{
   it("blinks deterministically",()=>{
-    const source=blinkSource({intervalSeconds:1});
-    const frame={deltaSeconds:0,elapsedSeconds:1.05,lookTarget:null};
+    const source=blinkSource({minIntervalSeconds:.1,maxIntervalSeconds:.1,seed:1});
+    const frame={deltaSeconds:0,elapsedSeconds:.2,lookTarget:null};
     expect(source.evaluate(frame)[0]?.value).toBeGreaterThan(0);
   });
   it("maps visemes",()=>{
