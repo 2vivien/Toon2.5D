@@ -6,6 +6,7 @@ function renderer():Renderer{
   let disposed=false;
   return{
     createScene:()=>({id:"test"}),
+    loadAsset:async()=>undefined,
     setAvatarTransform:()=>undefined,
     setFaceWeights:()=>undefined,
     render:()=>undefined,
