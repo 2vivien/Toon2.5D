@@ -58,9 +58,9 @@ export function createRuntime(definition:AvatarDefinition,renderer:Renderer,opti
       if(!options.assetResolver)throw new ToonCoreError("INVALID_LIFECYCLE","An asset resolver is required for CharacterDefinition loading.");
       const partMap:[string,CharacterDefinition[keyof CharacterDefinition]|undefined][]=[["body",character.body],["head",character.face],["texture",character.skin],["hair",character.hair],["eyes",character.eyes],["brows",character.brows],["nose",character.nose],["mouth",character.mouth],["top",character.top],["bottom",character.bottom],["shoes",character.shoes]];
       const items:CharacterCustomization["items"][number][]=[];let index=0;
-      for(const [slot,part] of partMap){if(!part||typeof part!=="object"||!("assetId"in part))continue;const asset=options.assetResolver.resolve(part.assetId);if(!asset)throw new ToonCoreError("INVALID_DEFINITION","Unknown character asset ID: "+part.assetId);items.push({id:slot+"-"+index++,slot:slot==="head"?"head":slot as never,assetUri:asset.uri,morphs:part.morphs});}
+      for(const [slot,part] of partMap){if(!part||typeof part!=="object"||!("assetId"in part))continue;const asset=options.assetResolver.resolve(part.assetId);if(!asset)throw new ToonCoreError("INVALID_DEFINITION","Unknown character asset ID: "+part.assetId);items.push({id:slot+"-"+index++,slot,assetUri:asset.uri,morphs:part.morphs});}
       for(const part of character.accessories??[]){const asset=options.assetResolver.resolve(part.assetId);if(!asset)throw new ToonCoreError("INVALID_DEFINITION","Unknown accessory asset ID: "+part.assetId);items.push({id:"accessory-"+index++,slot:"accessory",assetUri:asset.uri,morphs:part.morphs});}
-      await this.applyCustomization({selections:{body:null,hair:null,top:null,bottom:null,shoes:null,accessory:null,head:null,texture:null},items});
+      await this.applyCustomization({selections:{body:null,face:null,skin:null,hair:null,eyes:null,brows:null,nose:null,mouth:null,top:null,bottom:null,shoes:null,accessory:null},items});
     },
     update(deltaSeconds){
       if(!Number.isFinite(deltaSeconds)||deltaSeconds<0)throw new ToonCoreError("INVALID_NUMBER","Delta time must be finite and non-negative.");
