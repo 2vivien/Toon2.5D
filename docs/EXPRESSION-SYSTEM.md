@@ -43,7 +43,7 @@ enabled
 evaluate(context)
 ```
 
-V0 sources:
+Current V1 sources:
 
 - EmotionSource
 - BlinkSource
@@ -279,7 +279,7 @@ VRM similarly defines both bone-based and expression-based look-at mechanisms. î
 
 Lip sync consumes normalized input.
 
-V0 contract:
+Current source contract:
 
 ```
 visemeId
