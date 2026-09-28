@@ -1,4 +1,5 @@
 import type {Clip} from "./types.js";
+import type {ExpressionContribution,ExpressionSource} from "@toon2.5d/core";
 
 export type StateTrigger=string;
 export type TransitionCondition=(context:Readonly<StateMachineContext>)=>boolean;
