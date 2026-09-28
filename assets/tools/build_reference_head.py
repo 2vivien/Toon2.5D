@@ -1,5 +1,4 @@
 import bpy
-import math
 from pathlib import Path
 
 ARKIT_52=[
@@ -13,75 +12,142 @@ ARKIT_52=[
 "cheekSquintRight","noseSneerLeft","noseSneerRight","tongueOut"
 ]
 
+EYE_KEYS=[name for name in ARKIT_52 if name.startswith("eye")]
+MOUTH_KEYS=[name for name in ARKIT_52 if name.startswith(("jaw","mouth")) or name=="tongueOut"]
+BROW_KEYS=[name for name in ARKIT_52 if name.startswith("brow")]
+FACE_KEYS=ARKIT_52
+
 def reset_scene():
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete(use_global=False)
 
-def add_material(name,color,roughness):
-    material=bpy.data.materials.new(name)
-    material.diffuse_color=(*color,1)
-    material.roughness=roughness
-    return material
+def material(name,color,roughness):
+    mat=bpy.data.materials.new(name)
+    mat.diffuse_color=(*color,1)
+    mat.use_nodes=True
+    node=mat.node_tree.nodes.get("Principled BSDF")
+    if node:
+        node.inputs["Base Color"].default_value=(*color,1)
+        node.inputs["Roughness"].default_value=roughness
+    return mat
 
-def add_shape_keys(head):
-    head.shape_key_add(name="Basis")
-    for name in ARKIT_52:
-        key=head.shape_key_add(name=name)
+def mask(co,cx,cz,rx,rz,front=-.45):
+    if co.y>front:return 0.0
+    dx=(co.x-cx)/rx
+    dz=(co.z-cz)/rz
+    return max(0.0,1.0-(dx*dx+dz*dz))
+
+def add_keys(obj,names,deform):
+    obj.shape_key_add(name="Basis")
+    for name in names:
+        key=obj.shape_key_add(name=name)
         for vertex in key.data:
-            co=vertex.co
-            if name.startswith("eyeBlink"):
-                side=-1 if name.endswith("Left") else 1
-                if abs(co.x-side*.34)<.3 and co.z>.0 and co.y<-.55: vertex.co.z-=.08
-            elif name.startswith("eyeWide"):
-                side=-1 if name.endswith("Left") else 1
-                if abs(co.x-side*.34)<.3 and co.z>.0 and co.y<-.55: vertex.co.z+=.08
-            elif name.startswith("mouthSmile") or name.startswith("mouthFrown"):
-                side=-1 if name.endswith("Left") else 1
-                if abs(co.x-side*.55)<.3 and co.z<-.05 and co.y<-.55:
-                    vertex.co.z += .07 if "Smile" in name else -.07
-            elif name=="jawOpen":
-                if co.z<-.15 and co.y<-.45: vertex.co.z-=.13
-            elif name.startswith("brow"):
-                if co.z>.25 and co.y<-.5:
-                    vertex.co.z += .07 if "Up" in name or name=="browInnerUp" else -.06
-            elif name.startswith("cheek"):
-                if abs(co.z)<.25 and co.y<-.55: vertex.co.y-=.04
-            elif name.startswith("nose"):
-                if abs(co.x)<.3 and abs(co.z)<.2 and co.y<-.7: vertex.co.y-=.05
-            elif name.startswith("mouth"):
-                if co.z<.05 and co.y<-.6: vertex.co.y-=.025
+            delta=deform(name,vertex.co)
+            vertex.co.x+=delta[0]
+            vertex.co.y+=delta[1]
+            vertex.co.z+=delta[2]
+
+def head_deform(name,co):
+    eye_side=-1 if name.endswith("Left") else 1
+    eye=mask(co,eye_side*.34,.18,.30,.20)
+    mouth=mask(co,0,-.30,.62,.25)
+    cheek=mask(co,eye_side*.48,-.02,.42,.35)
+    brow=mask(co,eye_side*.34,.40,.30,.18)
+    if name.startswith("eyeBlink"):
+        return (0,0,-.13*eye)
+    if name.startswith("eyeWide"):
+        return (0,0,.10*eye)
+    if name.startswith("eyeSquint"):
+        return (0,0,-.06*eye)
+    if name.startswith("eyeLook"):
+        return (0,0,.025*eye)
+    if name=="jawOpen":
+        return (0,0,-.15*max(mouth,mask(co,0,-.55,.7,.45)))
+    if name=="jawForward": return (0,.06*mouth,0)
+    if name=="jawLeft": return (-.06*mouth,0,0)
+    if name=="jawRight": return (.06*mouth,0,0)
+    if name.startswith("mouthSmile"):
+        return (0,-.015*mouth,.10*mouth)
+    if name.startswith("mouthFrown"):
+        return (0,0,-.09*mouth)
+    if name.startswith("mouthStretch"):
+        return (.08*eye_side*mouth,0,.01*mouth)
+    if name.startswith("mouthPucker") or name.startswith("mouthFunnel"):
+        return (0,.07*mouth,0)
+    if name.startswith("mouthClose") or name.startswith("mouthPress"):
+        return (0,0,.035*mouth)
+    if name.startswith("mouthUpperUp"): return (0,0,.055*mouth)
+    if name.startswith("mouthLowerDown"): return (0,0,-.055*mouth)
+    if name.startswith("mouthShrugUpper"): return (0,0,.045*mouth)
+    if name.startswith("mouthShrugLower"): return (0,0,-.045*mouth)
+    if name.startswith("mouthLeft"): return (-.055*mouth,0,0)
+    if name.startswith("mouthRight"): return (.055*mouth,0,0)
+    if name.startswith("cheekPuff"): return (0,-.055*cheek,0)
+    if name.startswith("cheekSquint"): return (0,0,.045*cheek)
+    if name.startswith("brow"):
+        direction=.055 if "Up" in name else -.055
+        return (0,0,direction*brow)
+    if name.startswith("noseSneer"): return (0,-.035*cheek,0)
+    return (0,0,0)
+
+def eye_deform(name,co):
+    if name.endswith("Left") and co.x>0:return (0,0,0)
+    if name.endswith("Right") and co.x<0:return (0,0,0)
+    if name.startswith("eyeBlink"): return (0,0,-.10)
+    if name.startswith("eyeWide"): return (0,0,.08)
+    return (0,0,0)
+
+def mouth_deform(name,co):
+    if name=="jawOpen": return (0,0,-.13)
+    if name.startswith("mouthSmile"): return (0,0,.06)
+    if name.startswith("mouthFrown"): return (0,0,-.05)
+    if name.startswith(("mouthPucker","mouthFunnel")): return (0,.07,0)
+    if name.startswith("mouthStretch"):
+        return (.05 if name.endswith("Right") else -.05,0,0)
+    if name.startswith("mouthUpperUp"): return (0,0,.05)
+    if name.startswith("mouthLowerDown"): return (0,0,-.05)
+    if name.startswith("mouthClose"): return (0,0,.03)
+    return (0,0,0)
+
+def add_uv(name,location,scale,mat,segments=32,rings=20):
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=segments,ring_count=rings,radius=1,location=location)
+    obj=bpy.context.object
+    obj.name=name
+    obj.scale=scale
+    bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+    obj.data.materials.append(mat)
+    return obj
 
 def build():
     reset_scene()
-    skin=add_material("ToonSkin",(0.74,0.38,0.24),.8)
-    white=add_material("ToonEye",(1,1,1),.35)
-    dark=add_material("ToonPupil",(0.02,0.02,0.02),.3)
-    lip=add_material("ToonMouth",(0.25,0.04,0.07),.65)
+    skin=material("ToonSkin",(0.74,.38,.24),.72)
+    white=material("ToonEye",(1,1,1),.28)
+    dark=material("ToonPupil",(.015,.012,.01),.2)
+    lip=material("ToonMouth",(.28,.035,.055),.55)
+    hair=material("ToonHair",(.055,.025,.018),.8)
+    brow=material("ToonBrow",(.08,.035,.025),.82)
 
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=32,ring_count=20,radius=1,location=(0,0,0))
-    head=bpy.context.object
-    head.name="Head"
-    head.scale=(1,.95,.9)
-    bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
-    head.data.materials.append(skin)
-    add_shape_keys(head)
+    head=add_uv("Head",(0,0,0),(1,.95,.9),skin)
+    add_keys(head,FACE_KEYS,head_deform)
 
-    for name,x in [("Eye.L",-.34),("Eye.R",.34)]:
-        bpy.ops.mesh.primitive_uv_sphere_add(segments=20,ring_count=12,radius=.2,location=(x,-.86,.18))
-        eye=bpy.context.object
-        eye.name=name
-        eye.data.materials.append(white)
-        bpy.ops.mesh.primitive_uv_sphere_add(segments=16,ring_count=10,radius=.08,location=(x,-1.04,.18))
-        pupil=bpy.context.object
-        pupil.name=f"{name}.Pupil"
-        pupil.data.materials.append(dark)
+    for side,x in [("L",-.34),("R",.34)]:
+        eye=add_uv(f"Eye.{side}",(x,-.86,.18),(.205,.12,.20),white,24,16)
+        add_keys(eye,EYE_KEYS,eye_deform)
+        pupil=add_uv(f"Eye.{side}.Pupil",(x,-.975,.18),(.075,.035,.075),dark,20,12)
+        add_keys(pupil,EYE_KEYS,lambda n,c:(0,0,.025 if "LookUp" in n else -.025 if "LookDown" in n else 0))
+        lid=add_uv(f"Eyelid.{side}",(x,-.955,.27),(.23,.045,.055),skin,24,12)
+        add_keys(lid,EYE_KEYS,eye_deform)
 
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=20,ring_count=12,radius=.24,location=(0,-.88,-.28))
-    mouth=bpy.context.object
-    mouth.name="Mouth"
-    mouth.scale=(1,.35,.55)
-    bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
-    mouth.data.materials.append(lip)
+    mouth=add_uv("Mouth",(0,-.91,-.28),(.25,.06,.11),lip,28,16)
+    add_keys(mouth,MOUTH_KEYS,mouth_deform)
+
+    for side,x in [("L",-.34),("R",.34)]:
+        brow_obj=add_uv(f"Brow.{side}",(x,-.91,.43),(.22,.035,.055),brow,24,12)
+        add_keys(brow_obj,BROW_KEYS,lambda n,c:(0,0,.07 if "Up" in n else -.055))
+
+    haircap=add_uv("HairCap",(0,.02,.45),(1.01,.96,.62),hair,32,20)
+    for i,(x,z,s) in enumerate([(-.72,.58,.34),(-.38,.72,.38),(0,.78,.40),(.38,.72,.38),(.72,.58,.34)]):
+        add_uv(f"HairLock.{i}",(x,-.02,z),(s,.9*s,.42*s),hair,24,16)
 
     root=bpy.data.objects.new("AvatarRoot",None)
     bpy.context.collection.objects.link(root)
@@ -91,18 +157,11 @@ def build():
     output=Path(bpy.path.abspath("//generated/head.reference.glb"))
     output.parent.mkdir(parents=True,exist_ok=True)
     bpy.ops.export_scene.gltf(
-        filepath=str(output),
-        export_format="GLB",
-        export_yup=True,
-        export_materials="EXPORT",
-        export_morph=True,
-        export_morph_normal=False,
-        export_morph_tangent=False,
-        export_meshopt_compression_enable=True,
-        export_animations=False,
-        export_cameras=False,
-        export_lights=False,
-        export_apply=False
+        filepath=str(output),export_format="GLB",export_yup=True,
+        export_materials="EXPORT",export_morph=True,export_morph_normal=False,
+        export_morph_tangent=False,export_meshopt_compression_enable=True,
+        export_animations=False,export_cameras=False,export_lights=False,
+        export_apply=False,export_try_sparse_sk=True
     )
     print(f"Toon2.5D reference head: {output}")
 
