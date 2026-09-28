@@ -10,7 +10,7 @@ const slots=["body","face","skin","hair","eyes","brows","nose","mouth","top","bo
 
 export function Studio({character,width=640,height=640}:StudioProps){
  const canvasRef=useRef<HTMLCanvasElement|null>(null);const runtimeRef=useRef<ReturnType<typeof createRuntime>|null>(null);
- const[panel,setPanel]=useState<Panel>("character");const[smile,setSmile]=useState(0);const[blink,setBlink]=useState(0);const[playing,setPlaying]=useState(false);
+ const[panel,setPanel]=useState<Panel>("expressions");const[smile,setSmile]=useState(0);const[blink,setBlink]=useState(0);const[playing,setPlaying]=useState(false);
  const[quality,setQuality]=useState<QualityTier>("high");const[fov,setFov]=useState(35);const[project,setProject]=useState<Record<string,string|null>>(()=>Object.fromEntries(slots.map(slot=>[slot,null])));
  const characterDefinition=useMemo<CharacterDefinition|undefined>(()=>character.character,[character.character]);
 
